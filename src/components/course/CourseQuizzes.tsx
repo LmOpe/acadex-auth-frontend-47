@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import courseService, { Quiz } from '@/services/courseService';
 import { 
   Card, 
@@ -26,6 +26,8 @@ const CourseQuizzes = ({ courseId }: CourseQuizzesProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<boolean | undefined>(undefined);
+  const location = useLocation();
+  const course = location.state?.course;
 
   useEffect(() => {
     const fetchQuizzes = async () => {
@@ -145,7 +147,7 @@ const CourseQuizzes = ({ courseId }: CourseQuizzesProps) => {
               </CardContent>
               <CardFooter className="flex justify-end gap-2">
                 <Button asChild variant="outline">
-                  <Link to={`/quizzes/${quiz.id}`} state={{ quiz, courseId }}>
+                  <Link to={`/quizzes/${quiz.id}`} state={{ quiz, courseId, course }}>
                     Quiz Details
                   </Link>
                 </Button>

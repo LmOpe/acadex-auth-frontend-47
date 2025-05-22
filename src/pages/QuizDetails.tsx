@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useParams, useLocation, Link } from 'react-router-dom';
+import { useParams, useLocation, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -10,11 +10,12 @@ import { ArrowLeft, Clock, Calendar, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import CreateQuizQuestionForm from '@/components/quiz/CreateQuizQuestionForm';
 import QuizQuestionsList from '@/components/quiz/QuizQuestionsList';
-import courseService, { Quiz } from '@/services/courseService';
+import courseService, { Quiz, Course } from '@/services/courseService';
 
 const QuizDetails = () => {
   const { quizId } = useParams<{ quizId: string }>();
   const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -22,6 +23,7 @@ const QuizDetails = () => {
   // Get quiz from location state
   const quiz = location.state?.quiz as Quiz;
   const courseId = location.state?.courseId as string;
+  const course = location.state?.course as Course;
   
   // If no quiz data is available, show an error
   if (!quiz || !courseId) {
@@ -48,15 +50,17 @@ const QuizDetails = () => {
     setActiveTab("questions");
   };
 
+  const navigateBackToCourse = () => {
+    navigate(`/courses/${courseId}`, { state: { course } });
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6">
         <div className="flex items-center mb-4">
-          <Button asChild variant="ghost" className="mr-2">
-            <Link to={`/courses/${courseId}`}>
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Back to Course
-            </Link>
+          <Button variant="ghost" className="mr-2" onClick={navigateBackToCourse}>
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            Back to Course
           </Button>
           <h1 className="text-3xl font-bold text-acadex-primary">{quiz.title}</h1>
         </div>
