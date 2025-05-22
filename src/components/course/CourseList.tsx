@@ -89,7 +89,7 @@ const CourseList = ({
             
             <CardFooter>
               <Button variant="outline" className="w-full" asChild>
-                <Link to={`/courses/${course.course_id}`}>View Details</Link>
+                <Link to={`/courses/${course.course_id}`} state={{ course }}>View Details</Link>
               </Button>
             </CardFooter>
           </Card>)}
