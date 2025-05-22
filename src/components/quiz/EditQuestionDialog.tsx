@@ -12,7 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from '@/hooks/use-toast';
-import courseService, { QuizQuestion, UpdateQuestionRequest } from '@/services/courseService';
+import courseService, { QuizQuestion, UpdateQuestionRequest, QuizAnswer } from '@/services/courseService';
 
 interface EditQuestionDialogProps {
   quizId: string;
@@ -45,7 +45,11 @@ const EditQuestionDialog = ({ quizId, question, onQuestionUpdate }: EditQuestion
     resolver: zodResolver(formSchema),
     defaultValues: {
       text: question.text,
-      answers: question.answers,
+      answers: question.answers.map(answer => ({
+        id: answer.id,
+        text: answer.text,
+        is_correct: answer.is_correct,
+      })),
     },
   });
 
@@ -56,7 +60,7 @@ const EditQuestionDialog = ({ quizId, question, onQuestionUpdate }: EditQuestion
       
       const updateData: UpdateQuestionRequest = {
         text: data.text,
-        answers: data.answers,
+        answers: data.answers as QuizAnswer[],
       };
       
       await courseService.updateQuizQuestion(quizId, question.id, updateData);
