@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Eye, EyeOff } from 'lucide-react';
 
 const RegisterStudent = () => {
   const [matricNumber, setMatricNumber] = useState('');
@@ -17,9 +17,14 @@ const RegisterStudent = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const { registerStudent } = useAuth();
   const navigate = useNavigate();
+  
+  const togglePasswordVisibility = () => setShowPassword(!showPassword);
+  const toggleConfirmPasswordVisibility = () => setShowConfirmPassword(!showConfirmPassword);
   
   const validateForm = () => {
     if (!matricNumber.trim()) return 'Matric number is required';
@@ -46,8 +51,27 @@ const RegisterStudent = () => {
       setIsLoading(true);
       await registerStudent(matricNumber, firstName, lastName, password);
       navigate('/login');
-    } catch (err) {
-      // Error is already handled in the registration function via toast
+    } catch (err: any) {
+      // Display specific backend error if available
+      if (err.response?.data) {
+        // Check for different error formats
+        if (typeof err.response.data === 'string') {
+          setError(err.response.data);
+        } else if (err.response.data.detail) {
+          setError(err.response.data.detail);
+        } else if (err.response.data.message) {
+          setError(err.response.data.message);
+        } else if (typeof err.response.data === 'object') {
+          // Handle field-specific errors (common in 400 responses)
+          const errorMessages = Object.values(err.response.data)
+            .flat()
+            .filter(Boolean)
+            .join(', ');
+          setError(errorMessages || 'Registration failed. Please check your information.');
+        }
+      } else {
+        setError('Registration failed. Please try again later.');
+      }
       setIsLoading(false);
     }
   };
@@ -107,26 +131,48 @@ const RegisterStudent = () => {
               
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isLoading}
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isLoading}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={togglePasswordVisibility}
+                    className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  placeholder="••••••••"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  disabled={isLoading}
-                />
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    disabled={isLoading}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={toggleConfirmPasswordVisibility}
+                    className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600"
+                    tabIndex={-1}
+                  >
+                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
               
               <Button type="submit" className="w-full" disabled={isLoading}>
