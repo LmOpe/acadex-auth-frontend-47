@@ -1,6 +1,6 @@
 
-import { useState, useEffect } from 'react';
-import { useParams, Link, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { useParams, Link, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { 
   Tabs, 
@@ -12,77 +12,27 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
-import courseService from '@/services/courseService';
 import CourseEnrollments from '@/components/course/CourseEnrollments';
 import CourseQuizzes from '@/components/course/CourseQuizzes';
 import CreateQuizForm from '@/components/quiz/CreateQuizForm';
+import { Course } from '@/services/courseService';
 
 const CourseDetails = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const location = useLocation();
   const { user } = useAuth();
-  const [course, setCourse] = useState<any>(location.state?.course || null);
-  const [loading, setLoading] = useState(!location.state?.course);
-  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
+  
+  // Get course from location state
+  const course = location.state?.course as Course;
 
-  useEffect(() => {
-    // Only fetch if we don't have the course data from navigation state
-    if (!location.state?.course && courseId) {
-      const fetchCourseDetails = async () => {
-        try {
-          setLoading(true);
-          setError(null);
-          
-          const courseData = await courseService.getCourseDetails(courseId);
-          setCourse(courseData);
-        } catch (err: any) {
-          console.error('Error fetching course details:', err);
-          setError(err.response?.data?.detail || 'Failed to load course details');
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      fetchCourseDetails();
-    }
-  }, [courseId, location.state?.course]);
-
-  if (loading) {
-    return (
-      <div className="container mx-auto p-4">
-        <div className="flex justify-center my-8">
-          <div className="animate-pulse text-acadex-primary">Loading course details...</div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="container mx-auto p-4">
-        <Alert variant="destructive" className="my-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-        <div className="mt-4">
-          <Button asChild variant="outline">
-            <Link to="/dashboard">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Dashboard
-            </Link>
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
+  // If no course data is available in navigation state, redirect to dashboard
   if (!course) {
     return (
       <div className="container mx-auto p-4">
         <Alert className="my-4">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>Course not found</AlertDescription>
+          <AlertDescription>Course information not available. Please select a course from the dashboard.</AlertDescription>
         </Alert>
         <div className="mt-4">
           <Button asChild variant="outline">

@@ -88,12 +88,6 @@ const courseService = {
     return response.data;
   },
   
-  // Get a single course details
-  getCourseDetails: async (courseId: string): Promise<Course> => {
-    const response = await api.get(`/api/courses/${courseId}/`);
-    return response.data;
-  },
-  
   // Get all quizzes (optionally filtered by active status)
   getQuizzes: async (isActive?: boolean): Promise<CourseQuizzes[]> => {
     const url = isActive !== undefined 
