@@ -110,7 +110,10 @@ export const authService = {
       return JSON.parse(userStr);
     }
     return null;
-  }
+  },
+  
+  // Expose API instance for other services
+  getApiInstance: () => api
 };
 
 export default authService;
