@@ -53,9 +53,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       setUser(userData);
       toast.success('Login successful!');
-      
-      return userData;
     } catch (error: any) {
+      console.error('Login error:', error);
+      console.log('Error response data:', error.response?.data);
+      console.log('Error status:', error.response?.status);
+      
       const errorMsg = error.response?.status === 401 
         ? 'Invalid credentials. Please try again.' 
         : 'An error occurred. Please try again later.';
@@ -70,6 +72,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await authService.registerLecturer(staffId, firstName, lastName, password);
       toast.success('Registration successful! You can now login.');
     } catch (error: any) {
+      console.error('Lecturer registration error:', error);
+      console.log('Error response data:', error.response?.data);
+      console.log('Error status:', error.response?.status);
+      
       const errorMsg = error.response?.data?.message || 'Registration failed. Please try again.';
       toast.error(errorMsg);
       throw error;
@@ -82,6 +88,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await authService.registerStudent(matricNumber, firstName, lastName, password);
       toast.success('Registration successful! You can now login.');
     } catch (error: any) {
+      console.error('Student registration error:', error);
+      console.log('Error response data:', error.response?.data);
+      console.log('Error status:', error.response?.status);
+      
       const errorMsg = error.response?.data?.message || 'Registration failed. Please try again.';
       toast.error(errorMsg);
       throw error;
