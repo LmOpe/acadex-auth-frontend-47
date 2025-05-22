@@ -1,11 +1,6 @@
 
-import { useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { format, parse } from "date-fns";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -14,46 +9,55 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Edit } from "lucide-react";
-import { CalendarIcon, Clock } from "lucide-react";
+} from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+} from '@/components/ui/form';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Switch } from "@/components/ui/switch";
-import { cn } from "@/lib/utils";
-import courseService, { Quiz } from "@/services/courseService";
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Edit, Calendar as CalendarIcon, Clock } from 'lucide-react';
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import { toast } from "sonner";
+import { Quiz } from '@/services/courseService';
+import courseService from '@/services/courseService';
+import { cn } from '@/lib/utils';
 
-// Convert local datetime to UTC ISO string
-const localDateToUTC = (date: Date): string => {
-  return date.toISOString();
-};
-
-// Extract hours and minutes from time string HH:MM:SS
-const parseTimeString = (timeString: string): { hours: number, minutes: number } => {
-  const [hours, minutes] = timeString.split(':').map(Number);
-  return { hours: hours || 0, minutes: minutes || 0 };
-};
+interface EditQuizDialogProps {
+  quiz: Quiz;
+  onQuizUpdate: () => void;
+}
 
 // Format time duration as HH:MM:SS
 const formatDuration = (hours: number, minutes: number): string => {
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
 };
 
-const quizFormSchema = z.object({
+// Parse time duration from HH:MM:SS to { hours, minutes }
+const parseDuration = (duration: string): { hours: number, minutes: number } => {
+  const parts = duration.split(':');
+  return {
+    hours: parseInt(parts[0], 10),
+    minutes: parseInt(parts[1], 10),
+  };
+};
+
+const editQuizSchema = z.object({
   title: z.string().min(1, "Title is required"),
   instructions: z.string().min(1, "Instructions are required"),
   start_date_time: z.date({
@@ -74,63 +78,56 @@ const quizFormSchema = z.object({
   path: ["minutes"],
 });
 
-type QuizFormValues = z.infer<typeof quizFormSchema>;
+type EditQuizFormValues = z.infer<typeof editQuizSchema>;
 
-interface EditQuizDialogProps {
-  quiz: Quiz;
-  onQuizUpdate: () => void;
-}
-
-export default function EditQuizDialog({ quiz, onQuizUpdate }: EditQuizDialogProps) {
-  const [isOpen, setIsOpen] = useState(false);
+const EditQuizDialog = ({ quiz, onQuizUpdate }: EditQuizDialogProps) => {
+  const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Parse the allotted time
-  const { hours, minutes } = parseTimeString(quiz.allotted_time);
-
-  const form = useForm<QuizFormValues>({
-    resolver: zodResolver(quizFormSchema),
+  
+  const duration = parseDuration(quiz.allotted_time);
+  
+  const form = useForm<EditQuizFormValues>({
+    resolver: zodResolver(editQuizSchema),
     defaultValues: {
       title: quiz.title,
       instructions: quiz.instructions,
       start_date_time: new Date(quiz.start_date_time),
       end_date_time: new Date(quiz.end_date_time),
       number_of_questions: quiz.number_of_questions,
-      hours,
-      minutes,
+      hours: duration.hours,
+      minutes: duration.minutes,
       is_active: quiz.is_active,
     },
   });
-
-  const onSubmit = async (data: QuizFormValues) => {
+  
+  const onSubmit = async (data: EditQuizFormValues) => {
     setIsSubmitting(true);
+    
     try {
       const quizData = {
         title: data.title,
         instructions: data.instructions,
-        start_date_time: localDateToUTC(data.start_date_time),
-        end_date_time: localDateToUTC(data.end_date_time),
+        start_date_time: data.start_date_time.toISOString(),
+        end_date_time: data.end_date_time.toISOString(),
         number_of_questions: data.number_of_questions,
         allotted_time: formatDuration(data.hours, data.minutes),
         is_active: data.is_active,
       };
-
+      
       await courseService.updateQuiz(quiz.id, quizData);
       toast.success("Quiz updated successfully");
-      setIsOpen(false);
       onQuizUpdate();
+      setOpen(false);
     } catch (error: any) {
       console.error("Failed to update quiz:", error);
       
       if (error.response?.data) {
-        // Display error message from backend
         const errorData = error.response.data;
         if (typeof errorData === 'string') {
           toast.error(errorData);
         } else if (errorData.detail) {
           toast.error(errorData.detail);
         } else {
-          // Handle validation errors
           const errors = Object.entries(errorData)
             .map(([key, value]) => `${key}: ${value}`)
             .join(', ');
@@ -143,24 +140,25 @@ export default function EditQuizDialog({ quiz, onQuizUpdate }: EditQuizDialogPro
       setIsSubmitting(false);
     }
   };
-
+  
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <Edit className="h-4 w-4 mr-1" />
-          Edit
+          Edit Quiz
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Quiz</DialogTitle>
           <DialogDescription>
-            Update the details for this quiz
+            Update quiz details and settings
           </DialogDescription>
         </DialogHeader>
+        
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
             <FormField
               control={form.control}
               name="title"
@@ -182,14 +180,14 @@ export default function EditQuizDialog({ quiz, onQuizUpdate }: EditQuizDialogPro
                 <FormItem>
                   <FormLabel>Instructions</FormLabel>
                   <FormControl>
-                    <Textarea {...field} />
+                    <Textarea {...field} rows={3} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="start_date_time"
@@ -221,7 +219,6 @@ export default function EditQuizDialog({ quiz, onQuizUpdate }: EditQuizDialogPro
                           selected={field.value}
                           onSelect={field.onChange}
                           initialFocus
-                          className={cn("p-3 pointer-events-auto")}
                         />
                         <div className="p-3 border-t border-border">
                           <Input
@@ -274,11 +271,6 @@ export default function EditQuizDialog({ quiz, onQuizUpdate }: EditQuizDialogPro
                           selected={field.value}
                           onSelect={field.onChange}
                           initialFocus
-                          disabled={(date) => {
-                            const startDate = form.getValues("start_date_time");
-                            return startDate ? date < startDate : false;
-                          }}
-                          className={cn("p-3 pointer-events-auto")}
                         />
                         <div className="p-3 border-t border-border">
                           <Input
@@ -315,7 +307,7 @@ export default function EditQuizDialog({ quiz, onQuizUpdate }: EditQuizDialogPro
               )}
             />
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="hours"
@@ -355,11 +347,11 @@ export default function EditQuizDialog({ quiz, onQuizUpdate }: EditQuizDialogPro
               control={form.control}
               name="is_active"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
-                    <FormLabel>Active Status</FormLabel>
-                    <FormDescription className="text-xs">
-                      Set whether this quiz is active or inactive
+                    <FormLabel className="text-base">Quiz Status</FormLabel>
+                    <FormDescription>
+                      {field.value ? 'Quiz is active and available to students' : 'Quiz is inactive and hidden from students'}
                     </FormDescription>
                   </div>
                   <FormControl>
@@ -373,11 +365,11 @@ export default function EditQuizDialog({ quiz, onQuizUpdate }: EditQuizDialogPro
             />
             
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Saving..." : "Save Changes"}
+                {isSubmitting ? "Updating..." : "Save Changes"}
               </Button>
             </DialogFooter>
           </form>
@@ -385,7 +377,6 @@ export default function EditQuizDialog({ quiz, onQuizUpdate }: EditQuizDialogPro
       </DialogContent>
     </Dialog>
   );
-}
+};
 
-// Add the FormDescription export to avoid TypeScript errors
-import { FormDescription } from "@/components/ui/form";
+export default EditQuizDialog;

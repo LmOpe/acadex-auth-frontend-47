@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { 
   Tabs, 
@@ -19,32 +19,34 @@ import CreateQuizForm from '@/components/quiz/CreateQuizForm';
 
 const CourseDetails = () => {
   const { courseId } = useParams<{ courseId: string }>();
+  const location = useLocation();
   const { user } = useAuth();
-  const [course, setCourse] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [course, setCourse] = useState<any>(location.state?.course || null);
+  const [loading, setLoading] = useState(!location.state?.course);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
-    const fetchCourseDetails = async () => {
-      if (!courseId) return;
-      
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const courseData = await courseService.getCourseDetails(courseId);
-        setCourse(courseData);
-      } catch (err: any) {
-        console.error('Error fetching course details:', err);
-        setError(err.response?.data?.detail || 'Failed to load course details');
-      } finally {
-        setLoading(false);
-      }
-    };
+    // Only fetch if we don't have the course data from navigation state
+    if (!location.state?.course && courseId) {
+      const fetchCourseDetails = async () => {
+        try {
+          setLoading(true);
+          setError(null);
+          
+          const courseData = await courseService.getCourseDetails(courseId);
+          setCourse(courseData);
+        } catch (err: any) {
+          console.error('Error fetching course details:', err);
+          setError(err.response?.data?.detail || 'Failed to load course details');
+        } finally {
+          setLoading(false);
+        }
+      };
 
-    fetchCourseDetails();
-  }, [courseId]);
+      fetchCourseDetails();
+    }
+  }, [courseId, location.state?.course]);
 
   if (loading) {
     return (
