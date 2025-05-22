@@ -9,7 +9,14 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
   
-  console.log('ProtectedRoute state:', { user, loading });
+  console.log('ProtectedRoute state:', { 
+    user: user ? { 
+      ...user, 
+      role: user.role,
+      roleLowercase: user.role?.toLowerCase() 
+    } : null, 
+    loading 
+  });
   
   // While checking authentication status, show nothing
   if (loading) {

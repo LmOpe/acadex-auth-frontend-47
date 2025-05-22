@@ -1,4 +1,3 @@
-
 import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { toast } from '@/components/ui/sonner';
 import authService from '@/services/authService';
@@ -41,7 +40,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       const userData = {
         id: response.user_id,
-        role: response.role,
+        role: response.role?.toLowerCase() || '', // Convert role to lowercase
         firstName: response.first_name,
         lastName: response.last_name
       };
@@ -60,7 +59,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       const errorMsg = error.response?.status === 401 
         ? 'Invalid credentials. Please try again.' 
-        : 'An error occurred. Please try again later.';
+        : error.response?.data?.detail || error.response?.data?.message || 'An error occurred. Please try again later.';
       toast.error(errorMsg);
       throw error;
     }
