@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import courseService, { Quiz } from '@/services/courseService';
 import { 
   Card, 
@@ -142,7 +143,12 @@ const CourseQuizzes = ({ courseId }: CourseQuizzesProps) => {
                   <p className="text-muted-foreground">{quiz.instructions}</p>
                 </div>
               </CardContent>
-              <CardFooter className="flex justify-end">
+              <CardFooter className="flex justify-end gap-2">
+                <Button asChild variant="outline">
+                  <Link to={`/quizzes/${quiz.id}`} state={{ quiz, courseId }}>
+                    Quiz Details
+                  </Link>
+                </Button>
                 <EditQuizDialog 
                   quiz={quiz} 
                   onQuizUpdate={handleQuizUpdate} 

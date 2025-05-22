@@ -13,6 +13,7 @@ import RegisterStudent from "./pages/RegisterStudent";
 import RegisterLecturer from "./pages/RegisterLecturer";
 import Dashboard from "./pages/Dashboard";
 import CourseDetails from "./pages/CourseDetails"; 
+import QuizDetails from "./pages/QuizDetails";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <CourseDetails />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/quizzes/:quizId" 
+              element={
+                <ProtectedRoute>
+                  <QuizDetails />
                 </ProtectedRoute>
               } 
             />

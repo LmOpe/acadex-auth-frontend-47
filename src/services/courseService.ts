@@ -75,6 +75,31 @@ export interface CourseEnrollment {
   course_title: string;
 }
 
+export interface QuizQuestion {
+  id: string;
+  text: string;
+  answers: QuizAnswer[];
+}
+
+export interface QuizAnswer {
+  id: string;
+  text: string;
+  is_correct: boolean;
+}
+
+export interface CreateQuestionRequest {
+  text: string;
+  answers: Array<{
+    text: string;
+    is_correct: boolean;
+  }>;
+}
+
+export interface UpdateQuestionRequest {
+  text: string;
+  answers: QuizAnswer[];
+}
+
 const courseService = {
   // Create a new course
   createCourse: async (courseData: CreateCourseRequest): Promise<Course> => {
@@ -125,6 +150,24 @@ const courseService = {
   // Get students enrolled in a course
   getCourseEnrollments: async (courseId: string): Promise<CourseEnrollment[]> => {
     const response = await api.get(`/api/courses/${courseId}/enroll/`);
+    return response.data;
+  },
+  
+  // Create questions for a quiz (bulk create)
+  createQuizQuestions: async (quizId: string, questions: CreateQuestionRequest[]): Promise<QuizQuestion[]> => {
+    const response = await api.post(`/api/quizzes/${quizId}/questions/`, questions);
+    return response.data;
+  },
+  
+  // Get all questions for a quiz
+  getQuizQuestions: async (quizId: string): Promise<QuizQuestion[]> => {
+    const response = await api.get(`/api/quizzes/${quizId}/questions/`);
+    return response.data.data;
+  },
+  
+  // Update a specific question
+  updateQuizQuestion: async (quizId: string, questionId: string, question: UpdateQuestionRequest): Promise<QuizQuestion> => {
+    const response = await api.patch(`/api/quizzes/${quizId}/questions/${questionId}/`, question);
     return response.data;
   }
 };
