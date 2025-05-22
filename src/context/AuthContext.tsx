@@ -1,3 +1,4 @@
+
 import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { toast } from '@/components/ui/sonner';
 import authService from '@/services/authService';
@@ -40,7 +41,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       const userData = {
         id: response.user_id,
-        role: response.role?.toLowerCase() || '', // Convert role to lowercase
+        // Use user_role from API response instead of role
+        role: response.user_role || '',
         firstName: response.first_name,
         lastName: response.last_name
       };

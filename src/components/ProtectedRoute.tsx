@@ -13,7 +13,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     user: user ? { 
       ...user, 
       role: user.role,
-      roleLowercase: user.role?.toLowerCase() 
+      roleUppercase: user.role?.toUpperCase() 
     } : null, 
     loading 
   });

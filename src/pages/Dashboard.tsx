@@ -21,8 +21,8 @@ const Dashboard = () => {
     setRefreshTrigger(prev => prev + 1);
   };
   
-  // Different dashboard based on user role (case-insensitive comparison)
-  if (user.role.toLowerCase() === 'lecturer') {
+  // Check the user role (uppercase or lowercase doesn't matter)
+  if (user.role && user.role.toUpperCase() === 'LECTURER') {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
