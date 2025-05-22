@@ -22,13 +22,14 @@ const AvailableCourses = ({ enrolledCourses, onEnrollmentSuccess }: AvailableCou
   const [error, setError] = useState<string | null>(null);
   const [enrollingCourseId, setEnrollingCourseId] = useState<string | null>(null);
   const [searchSubmitted, setSearchSubmitted] = useState(false);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
   // Set of enrolled course IDs for efficient filtering
   const enrolledCourseIds = new Set(enrolledCourses.map(enrollment => enrollment.course));
 
   useEffect(() => {
     // Only fetch courses when component mounts or search is submitted
-    if (!searchSubmitted && courses.length > 0) {
+    if (!searchSubmitted && initialLoadComplete) {
       return;
     }
 
@@ -46,9 +47,11 @@ const AvailableCourses = ({ enrolledCourses, onEnrollmentSuccess }: AvailableCou
         setCourses(availableCourses);
         setFilteredCourses(availableCourses);
         setSearchSubmitted(false);
+        setInitialLoadComplete(true);
       } catch (err: any) {
         console.error('Fetch courses error:', err);
         setError(err.response?.data?.detail || 'Failed to fetch available courses');
+        setInitialLoadComplete(true);
       } finally {
         setLoading(false);
       }
@@ -79,7 +82,7 @@ const AvailableCourses = ({ enrolledCourses, onEnrollmentSuccess }: AvailableCou
     }
   };
 
-  if (loading) {
+  if (loading && !initialLoadComplete) {
     return (
       <div className="flex justify-center my-8">
         <div className="animate-pulse text-acadex-primary">Loading available courses...</div>
