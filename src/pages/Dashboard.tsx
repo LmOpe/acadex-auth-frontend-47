@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,18 +9,43 @@ import CreateCourseForm from '@/components/course/CreateCourseForm';
 import CourseList from '@/components/course/CourseList';
 import AvailableCourses from '@/components/student/AvailableCourses';
 import EnrolledCourses from '@/components/student/EnrolledCourses';
+import courseService, { CourseEnrollment } from '@/services/courseService';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [enrolledCoursesRefreshTrigger, setEnrolledCoursesRefreshTrigger] = useState(0);
   const [studentActiveTab, setStudentActiveTab] = useState("available");
+  const [enrolledCourses, setEnrolledCourses] = useState<CourseEnrollment[]>([]);
+  const [loadingEnrollments, setLoadingEnrollments] = useState(true);
   
   // If user is not logged in, redirect to login page
   if (!user) {
     return <Navigate to="/login" />;
   }
 
+  // Check if user is a lecturer
+  const isLecturer = user.role && user.role.toUpperCase() === 'LECTURER';
+
+  // For students, fetch enrolled courses only once on initial load
+  useEffect(() => {
+    if (!isLecturer) {
+      const fetchEnrollments = async () => {
+        try {
+          setLoadingEnrollments(true);
+          const data = await courseService.getStudentEnrollments();
+          setEnrolledCourses(data);
+        } catch (error) {
+          console.error("Failed to fetch enrollments:", error);
+        } finally {
+          setLoadingEnrollments(false);
+        }
+      };
+      
+      fetchEnrollments();
+    }
+  }, [isLecturer, enrolledCoursesRefreshTrigger]);
+  
   const handleCourseCreated = () => {
     // Increment refresh trigger to reload course list
     setRefreshTrigger(prev => prev + 1);
@@ -30,9 +55,6 @@ const Dashboard = () => {
     // Increment triggers to reload both available and enrolled course lists
     setEnrolledCoursesRefreshTrigger(prev => prev + 1);
   };
-  
-  // Check if user is a lecturer
-  const isLecturer = user.role && user.role.toUpperCase() === 'LECTURER';
   
   if (isLecturer) {
     return (
@@ -113,11 +135,8 @@ const Dashboard = () => {
         
         <TabsContent value="available" className="space-y-6">
           <h2 className="text-2xl font-semibold">Available Courses</h2>
-          <EnrolledCourses 
-            refreshTrigger={enrolledCoursesRefreshTrigger} 
-          />
           <AvailableCourses 
-            enrolledCourses={[]} 
+            enrolledCourses={enrolledCourses} 
             onEnrollmentSuccess={handleEnrollmentSuccess} 
           />
         </TabsContent>

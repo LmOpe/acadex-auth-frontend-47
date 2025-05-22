@@ -30,7 +30,7 @@ const EnrolledCourses = ({ refreshTrigger }: EnrolledCoursesProps) => {
     };
     
     fetchEnrollments();
-  }, [refreshTrigger]);
+  }, [refreshTrigger]); // Only depends on refreshTrigger
 
   if (loading) {
     return (

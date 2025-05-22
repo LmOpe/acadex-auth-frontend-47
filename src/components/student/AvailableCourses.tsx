@@ -21,11 +21,17 @@ const AvailableCourses = ({ enrolledCourses, onEnrollmentSuccess }: AvailableCou
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [enrollingCourseId, setEnrollingCourseId] = useState<string | null>(null);
+  const [searchSubmitted, setSearchSubmitted] = useState(false);
 
   // Set of enrolled course IDs for efficient filtering
   const enrolledCourseIds = new Set(enrolledCourses.map(enrollment => enrollment.course));
 
   useEffect(() => {
+    // Only fetch courses when component mounts or search is submitted
+    if (!searchSubmitted && courses.length > 0) {
+      return;
+    }
+
     const fetchCourses = async () => {
       try {
         setLoading(true);
@@ -39,6 +45,7 @@ const AvailableCourses = ({ enrolledCourses, onEnrollmentSuccess }: AvailableCou
         
         setCourses(availableCourses);
         setFilteredCourses(availableCourses);
+        setSearchSubmitted(false);
       } catch (err: any) {
         console.error('Fetch courses error:', err);
         setError(err.response?.data?.detail || 'Failed to fetch available courses');
@@ -48,11 +55,11 @@ const AvailableCourses = ({ enrolledCourses, onEnrollmentSuccess }: AvailableCou
     };
     
     fetchCourses();
-  }, [searchQuery, enrolledCourseIds]);
+  }, [searchSubmitted, enrolledCourseIds]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Search is handled in useEffect via searchQuery state
+    setSearchSubmitted(true);
   };
 
   const handleEnroll = async (courseId: string) => {
