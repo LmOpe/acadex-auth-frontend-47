@@ -113,6 +113,29 @@ const courseService = {
     return response.data;
   },
   
+  // Get all courses (for students) with optional search
+  getAllCourses: async (searchQuery?: string): Promise<Course[]> => {
+    const url = searchQuery ? `/api/courses/?search=${encodeURIComponent(searchQuery)}` : '/api/courses/';
+    const response = await api.get(url);
+    return response.data;
+  },
+  
+  // Enroll in a course
+  enrollInCourse: async (courseId: string): Promise<CourseEnrollment> => {
+    const user = authService.getCurrentUser();
+    const response = await api.post(`/api/courses/${courseId}/enroll/`, {
+      student: user.id,
+      course: courseId
+    });
+    return response.data;
+  },
+  
+  // Get student course enrollments
+  getStudentEnrollments: async (): Promise<CourseEnrollment[]> => {
+    const response = await api.get('/api/courses/students/enrollments/');
+    return response.data;
+  },
+  
   // Get all quizzes (optionally filtered by active status)
   getQuizzes: async (isActive?: boolean): Promise<CourseQuizzes[]> => {
     const url = isActive !== undefined 
