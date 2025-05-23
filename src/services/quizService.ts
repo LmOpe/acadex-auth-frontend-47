@@ -102,7 +102,8 @@ const quizService = {
     try {
       const response = await api.get('/api/quizzes/students/attempts/');
       const attempts = response.data.quizzes as StudentAttemptSummary[];
-      return attempts.some(attempt => attempt.quiz_id === quizId);
+      // Only consider it attempted if it was actually submitted
+      return attempts.some(attempt => attempt.quiz_id === quizId && attempt.submitted === true);
     } catch (error) {
       console.error('Error checking if quiz was attempted:', error);
       return false;

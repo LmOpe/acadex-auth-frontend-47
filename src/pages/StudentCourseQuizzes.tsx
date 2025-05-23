@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card';
@@ -36,7 +35,12 @@ const StudentCourseQuizzes = () => {
         
         // Fetch attempted quizzes to mark them
         const attempts = await quizService.getStudentAttempts();
-        const attemptedIds = new Set(attempts.quizzes.map((attempt: StudentAttemptSummary) => attempt.quiz_id));
+        // Only consider it attempted if it was submitted
+        const attemptedIds = new Set(
+          attempts.quizzes
+            .filter((attempt: StudentAttemptSummary) => attempt.submitted)
+            .map((attempt: StudentAttemptSummary) => attempt.quiz_id)
+        );
         setAttemptedQuizIds(attemptedIds);
         
         setQuizzes(data);

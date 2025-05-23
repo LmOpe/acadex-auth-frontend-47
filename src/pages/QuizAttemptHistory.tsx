@@ -47,7 +47,7 @@ const QuizAttemptHistory = () => {
   }, []);
 
   const handleGoBack = () => {
-    // Directly navigate to dashboard instead of using navigate(-1)
+    // Always navigate to dashboard
     navigate('/dashboard');
   };
 

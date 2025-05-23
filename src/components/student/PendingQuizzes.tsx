@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
@@ -38,7 +39,12 @@ const PendingQuizzes = ({ enrolledCourses }: PendingQuizzesProps) => {
         
         // Get attempted quizzes to filter them out
         const attempts = await quizService.getStudentAttempts();
-        const attemptedIds = new Set(attempts.quizzes.map(attempt => attempt.quiz_id));
+        // Only consider it attempted if it was submitted
+        const attemptedIds = new Set(
+          attempts.quizzes
+            .filter(attempt => attempt.submitted)
+            .map(attempt => attempt.quiz_id)
+        );
         setAttemptedQuizIds(attemptedIds);
         
         // Filter quizzes for enrolled courses
