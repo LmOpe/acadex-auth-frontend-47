@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, Eye, Users } from 'lucide-react';
+import { format } from 'date-fns';
 import quizService, { StudentAttempt, StudentQuizResult } from '@/services/quizService';
 import StudentResultDialog from './StudentResultDialog';
 
