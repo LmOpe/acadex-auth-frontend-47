@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -11,7 +10,14 @@ import AvailableCourses from '@/components/student/AvailableCourses';
 import EnrolledCourses from '@/components/student/EnrolledCourses';
 import PendingQuizzes from '@/components/student/PendingQuizzes';
 import courseService, { CourseEnrollment } from '@/services/courseService';
-import { ClipboardList } from 'lucide-react';
+import { ClipboardList, Menu, X } from 'lucide-react';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
@@ -20,6 +26,7 @@ const Dashboard = () => {
   const [studentActiveTab, setStudentActiveTab] = useState("available");
   const [enrolledCourses, setEnrolledCourses] = useState<CourseEnrollment[]>([]);
   const [loadingEnrollments, setLoadingEnrollments] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   // If user is not logged in, redirect to login page
   if (!user) {
@@ -109,13 +116,46 @@ const Dashboard = () => {
           <p className="text-muted-foreground">Welcome back, {user.firstName} {user.lastName}</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" asChild>
-            <Link to="/quiz-attempts">
-              <ClipboardList className="h-4 w-4 mr-2" />
-              Quiz History
-            </Link>
-          </Button>
-          <Button variant="outline" onClick={logout}>Sign Out</Button>
+          {/* Desktop buttons */}
+          <div className="hidden md:flex gap-2">
+            <Button variant="outline" asChild>
+              <Link to="/quiz-attempts">
+                <ClipboardList className="h-4 w-4 mr-2" />
+                Quiz History
+              </Link>
+            </Button>
+            <Button variant="outline" onClick={logout}>Sign Out</Button>
+          </div>
+          
+          {/* Mobile hamburger menu */}
+          <div className="md:hidden">
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <Menu className="h-4 w-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right">
+                <SheetHeader>
+                  <SheetTitle>Menu</SheetTitle>
+                </SheetHeader>
+                <div className="flex flex-col gap-4 mt-6">
+                  <Button variant="outline" asChild onClick={() => setMobileMenuOpen(false)}>
+                    <Link to="/quiz-attempts">
+                      <ClipboardList className="h-4 w-4 mr-2" />
+                      Quiz History
+                    </Link>
+                  </Button>
+                  <Button variant="outline" onClick={() => {
+                    setMobileMenuOpen(false);
+                    logout();
+                  }}>
+                    Sign Out
+                  </Button>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </div>
       
