@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { 
   Card, 
   CardContent, 
@@ -12,7 +12,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, Calendar, Clock } from 'lucide-react';
-import { toast } from '@/components/ui/sonner';
 import quizService, { CourseQuizzes, Quiz, StudentAttemptSummary } from '@/services/quizService';
 import { CourseEnrollment } from '@/services/courseService';
 
@@ -21,12 +20,10 @@ interface PendingQuizzesProps {
 }
 
 const PendingQuizzes = ({ enrolledCourses }: PendingQuizzesProps) => {
-  const navigate = useNavigate();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [attemptedQuizIds, setAttemptedQuizIds] = useState<Set<string>>(new Set());
-  const [attemptingQuizId, setAttemptingQuizId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchQuizzes = async () => {
@@ -39,12 +36,7 @@ const PendingQuizzes = ({ enrolledCourses }: PendingQuizzesProps) => {
         
         // Get attempted quizzes to filter them out
         const attempts = await quizService.getStudentAttempts();
-        // Only consider it attempted if it was submitted
-        const attemptedIds = new Set(
-          attempts.quizzes
-            .filter(attempt => attempt.submitted)
-            .map(attempt => attempt.quiz_id)
-        );
+        const attemptedIds = new Set(attempts.quizzes.map(attempt => attempt.quiz_id));
         setAttemptedQuizIds(attemptedIds);
         
         // Filter quizzes for enrolled courses
@@ -85,36 +77,6 @@ const PendingQuizzes = ({ enrolledCourses }: PendingQuizzesProps) => {
     }
   }, [enrolledCourses]);
 
-  const handleStartQuiz = async (quiz: Quiz) => {
-    try {
-      setAttemptingQuizId(quiz.id);
-      
-      // Try to start the quiz attempt
-      const attempt = await quizService.startQuizAttempt(quiz.id);
-      
-      // Check if the quiz has questions
-      if (!attempt.quiz_questions || attempt.quiz_questions.length === 0) {
-        toast.error('No questions available for this quiz. Please try again later.');
-        setAttemptingQuizId(null);
-        return;
-      }
-      
-      // If successful, navigate to attempt page
-      navigate(`/quizzes/${quiz.id}/attempt`, { 
-        state: { 
-          quiz,
-          returnPath: "/dashboard"
-        } 
-      });
-      
-    } catch (err: any) {
-      console.error('Error attempting quiz:', err);
-      const errorMessage = err.response?.data?.detail || 'Failed to start quiz';
-      toast.error(errorMessage);
-      setAttemptingQuizId(null);
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex justify-center my-4">
@@ -148,13 +110,6 @@ const PendingQuizzes = ({ enrolledCourses }: PendingQuizzesProps) => {
 
   return (
     <div className="space-y-4">
-      {error && (
-        <Alert variant="destructive" className="my-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-      
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
         {quizzes.map((quiz: any) => (
           <Card key={quiz.id} className="border-l-4 border-l-acadex-primary">
@@ -178,12 +133,10 @@ const PendingQuizzes = ({ enrolledCourses }: PendingQuizzesProps) => {
               </div>
             </CardContent>
             <CardFooter>
-              <Button
-                className="w-full"
-                disabled={attemptingQuizId === quiz.id}
-                onClick={() => handleStartQuiz(quiz)}
-              >
-                {attemptingQuizId === quiz.id ? "Loading..." : "Start Quiz"}
+              <Button asChild className="w-full">
+                <Link to={`/quizzes/${quiz.id}/attempt`} state={{ quiz, returnPath: "/dashboard" }}>
+                  Start Quiz
+                </Link>
               </Button>
             </CardFooter>
           </Card>

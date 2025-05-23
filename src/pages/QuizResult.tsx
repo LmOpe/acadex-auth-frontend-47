@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,7 +30,6 @@ const QuizResult = () => {
       try {
         setLoading(true);
         const resultData = await quizService.getQuizResult(quizId);
-        console.log("Fetched quiz result:", resultData);
         setResult(resultData);
       } catch (err: any) {
         console.error('Error fetching quiz result:', err);
@@ -102,9 +102,8 @@ const QuizResult = () => {
     );
   }
   
-  // Ensure we have answers array and handle both old and new API response formats
+  // Add null check for answers array
   const answers = result.answers || [];
-  // Calculate score based on correct answers
   const totalQuestions = answers.length;
   const correctAnswers = answers.filter(answer => answer.is_correct).length;
   const scorePercentage = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
