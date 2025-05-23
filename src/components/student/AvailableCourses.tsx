@@ -60,6 +60,21 @@ const AvailableCourses = ({ enrolledCourses, onEnrollmentSuccess }: AvailableCou
     fetchCourses();
   }, [searchSubmitted, enrolledCourseIds]);
 
+  // Add this effect to re-filter courses when enrolledCourses prop changes
+  useEffect(() => {
+    if (courses.length > 0) {
+      // Create updated set of enrolled course IDs
+      const updatedEnrolledCourseIds = new Set(enrolledCourses.map(enrollment => enrollment.course));
+      
+      // Re-filter the available courses
+      const availableCourses = courses.filter(
+        course => !updatedEnrolledCourseIds.has(course.course_id)
+      );
+      
+      setFilteredCourses(availableCourses);
+    }
+  }, [enrolledCourses, courses]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setSearchSubmitted(true);

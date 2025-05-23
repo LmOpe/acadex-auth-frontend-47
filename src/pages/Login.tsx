@@ -35,11 +35,11 @@ const Login = () => {
       await login(username, password);
       navigate('/dashboard');
     } catch (err: any) {
-      // Error is handled in the login function via toast
-      // But we can also display it in the form
-      if (err.response?.data?.detail) {
-        setError(err.response.data.detail);
-      }
+      // Display error in the form rather than relying on toast only
+      const errorMessage = err.response?.data?.detail || 
+                         err.message || 
+                         'Invalid credentials. Please try again.';
+      setError(errorMessage);
       setIsLoading(false);
     }
   };

@@ -59,10 +59,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.log('Error response data:', error.response?.data);
       console.log('Error status:', error.response?.status);
       
-      const errorMsg = error.response?.status === 401 
-        ? 'Invalid credentials. Please try again.' 
-        : error.response?.data?.detail || error.response?.data?.message || 'An error occurred. Please try again later.';
-      toast.error(errorMsg);
+      // Don't toast error here - let the login component handle it
+      // This prevents double error messages
       throw error;
     }
   };
