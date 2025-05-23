@@ -53,9 +53,18 @@ export interface SelectedAnswer {
   selected_option_id: string;
 }
 
+export interface QuizQuestionResult {
+  question_id: string;
+  question_text: string;
+  selected_option_text: string;
+  is_correct: boolean;
+  correct_option_text?: string;
+}
+
 export interface QuizSubmissionResponse {
   score: number;
-  answers: {
+  quiz_questions?: QuizQuestionResult[];
+  answers?: {
     question_id: string;
     selected_option: string;
     is_correct: boolean;
@@ -129,6 +138,34 @@ const quizService = {
   getQuizResult: async (quizId: string): Promise<QuizSubmissionResponse> => {
     const response = await api.get(`/api/quizzes/${quizId}/students/result/`);
     return response.data;
+  },
+  
+  // Normalize quiz result data to a consistent format
+  normalizeQuizResult: (result: QuizSubmissionResponse): QuizSubmissionResponse => {
+    // If the result already has the expected format (with answers array), return as is
+    if (result.answers) {
+      return result;
+    }
+    
+    // Convert new format (with quiz_questions array) to the expected format
+    if (result.quiz_questions) {
+      const normalizedResult: QuizSubmissionResponse = {
+        score: result.score,
+        answers: result.quiz_questions.map(question => ({
+          question_id: question.question_id,
+          selected_option: question.selected_option_text,
+          is_correct: question.is_correct,
+          correct_option: question.correct_option_text
+        }))
+      };
+      return normalizedResult;
+    }
+    
+    // If neither format is present, return with an empty answers array
+    return {
+      score: result.score || 0,
+      answers: []
+    };
   },
   
   // Helper function to convert UTC date string to local time

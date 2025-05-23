@@ -14,7 +14,7 @@ const QuizResult = () => {
   const location = useLocation();
   const navigate = useNavigate();
   
-  const [result, setResult] = useState<QuizSubmissionResponse | null>(
+  const [rawResult, setRawResult] = useState<QuizSubmissionResponse | null>(
     location.state?.result || null
   );
   const quizTitle = location.state?.quizTitle || 'Quiz';
@@ -22,15 +22,27 @@ const QuizResult = () => {
   
   const [loading, setLoading] = useState(!location.state?.result);
   const [error, setError] = useState<string | null>(null);
+  const [normalizedResult, setNormalizedResult] = useState<QuizSubmissionResponse | null>(null);
 
   useEffect(() => {
     const fetchResult = async () => {
-      if (result || !quizId) return;
+      if (!quizId) return;
       
       try {
         setLoading(true);
-        const resultData = await quizService.getQuizResult(quizId);
-        setResult(resultData);
+        let resultData: QuizSubmissionResponse;
+        
+        if (rawResult) {
+          resultData = rawResult;
+        } else {
+          const fetchedResult = await quizService.getQuizResult(quizId);
+          resultData = fetchedResult;
+          setRawResult(fetchedResult);
+        }
+        
+        // Normalize the result data
+        const normalized = quizService.normalizeQuizResult(resultData);
+        setNormalizedResult(normalized);
       } catch (err: any) {
         console.error('Error fetching quiz result:', err);
         setError(err.response?.data?.detail || 'Failed to load quiz result');
@@ -40,7 +52,7 @@ const QuizResult = () => {
     };
     
     fetchResult();
-  }, [quizId, result]);
+  }, [quizId, rawResult]);
   
   const handleGoBack = () => {
     navigate(returnPath);
@@ -83,7 +95,7 @@ const QuizResult = () => {
     );
   }
   
-  if (!result) {
+  if (!normalizedResult) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
@@ -103,7 +115,7 @@ const QuizResult = () => {
   }
   
   // Add null check for answers array
-  const answers = result.answers || [];
+  const answers = normalizedResult.answers || [];
   const totalQuestions = answers.length;
   const correctAnswers = answers.filter(answer => answer.is_correct).length;
   const scorePercentage = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
