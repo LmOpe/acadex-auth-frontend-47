@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { 
   Card, 
   CardContent, 
@@ -20,6 +21,7 @@ interface PendingQuizzesProps {
 }
 
 const PendingQuizzes = ({ enrolledCourses }: PendingQuizzesProps) => {
+  const navigate = useNavigate();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -95,8 +97,13 @@ const PendingQuizzes = ({ enrolledCourses }: PendingQuizzesProps) => {
         return;
       }
       
-      // If successful, navigate to attempt page using window.location.href
-      window.location.href = `/quizzes/${quiz.id}/attempt`;
+      // If successful, navigate to attempt page using React Router
+      navigate(`/quizzes/${quiz.id}/attempt`, {
+        state: {
+          quiz,
+          returnPath: '/dashboard'
+        }
+      });
       
     } catch (err: any) {
       console.error('Error attempting quiz:', err);
