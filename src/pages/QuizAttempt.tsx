@@ -186,7 +186,29 @@ const QuizAttemptPage = () => {
     );
   }
 
-  if (!attempt) return null;
+  // Add a guard clause to prevent rendering if attempt is null or questions are empty
+  if (!attempt || !attempt.quiz_questions || attempt.quiz_questions.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-acadex-primary">Quiz Error</h1>
+          <Button variant="outline" asChild>
+            <a href="/dashboard"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard</a>
+          </Button>
+        </div>
+        <Alert variant="destructive" className="my-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>No quiz questions found. Please try again later.</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  // Make sure we have a valid currentQuestionIndex
+  if (currentQuestionIndex >= attempt.quiz_questions.length) {
+    setCurrentQuestionIndex(0);
+    return null; // Return null to avoid rendering with invalid index
+  }
 
   const currentQuestion: QuizQuestion = attempt.quiz_questions[currentQuestionIndex];
   const totalQuestions = attempt.quiz_questions.length;
