@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, ArrowLeft, Clock, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { toast } from '@/components/ui/sonner';
 import quizService, { Quiz, StudentAttemptSummary } from '@/services/quizService';
 
 const StudentCourseQuizzes = () => {
@@ -13,12 +14,14 @@ const StudentCourseQuizzes = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const courseTitle = location.state?.courseTitle || 'Course';
+  const returnPath = location.state?.returnPath || '/dashboard';
   
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [attemptedQuizIds, setAttemptedQuizIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [attemptError, setAttemptError] = useState<string | null>(null);
+  const [attemptingQuizId, setAttemptingQuizId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -54,11 +57,31 @@ const StudentCourseQuizzes = () => {
 
   const handleAttemptQuiz = async (quiz: Quiz) => {
     try {
+      setAttemptingQuizId(quiz.id);
       setAttemptError(null);
-      navigate(`/quizzes/${quiz.id}/attempt`, { state: { quiz, returnPath: `/courses/${courseId}/quizzes` } });
+      
+      // Try to start the quiz attempt
+      const attempt = await quizService.startQuizAttempt(quiz.id);
+      
+      // Check if the quiz has questions
+      if (!attempt.quiz_questions || attempt.quiz_questions.length === 0) {
+        setAttemptError('No questions available for this quiz. Please try again later.');
+        setAttemptingQuizId(null);
+        return;
+      }
+      
+      // If successful, navigate to attempt page
+      navigate(`/quizzes/${quiz.id}/attempt`, { 
+        state: { 
+          quiz,
+          returnPath: `/courses/${courseId}/quizzes`
+        } 
+      });
+      
     } catch (err: any) {
       console.error('Error attempting quiz:', err);
       setAttemptError(err.response?.data?.detail || 'Failed to start quiz');
+      setAttemptingQuizId(null);
     }
   };
 
@@ -167,18 +190,20 @@ const StudentCourseQuizzes = () => {
                 <CardFooter>
                   <Button 
                     className="w-full" 
-                    disabled={!isActive || isAttempted}
+                    disabled={!isActive || isAttempted || attemptingQuizId === quiz.id}
                     onClick={() => isActive && !isAttempted && handleAttemptQuiz(quiz)}
                   >
-                    {isAttempted 
-                      ? "Already Attempted" 
-                      : isActive 
-                        ? "Attempt Quiz"
-                        : hasEnded 
-                          ? 'Quiz Ended' 
-                          : hasStarted 
-                            ? 'Not Available' 
-                            : 'Not Started Yet'
+                    {attemptingQuizId === quiz.id
+                      ? "Loading..."
+                      : isAttempted 
+                        ? "Already Attempted" 
+                        : isActive 
+                          ? "Attempt Quiz"
+                          : hasEnded 
+                            ? 'Quiz Ended' 
+                            : hasStarted 
+                              ? 'Not Available' 
+                              : 'Not Started Yet'
                     }
                   </Button>
                 </CardFooter>

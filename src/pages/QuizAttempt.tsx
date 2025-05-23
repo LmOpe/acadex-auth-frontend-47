@@ -151,7 +151,8 @@ const QuizAttemptPage = () => {
       navigate(`/quizzes/${quizId}/result`, { 
         state: { 
           result: response,
-          quizTitle: quiz?.title || "Quiz"
+          quizTitle: quiz?.title || "Quiz",
+          returnPath: returnPath
         } 
       });
       
