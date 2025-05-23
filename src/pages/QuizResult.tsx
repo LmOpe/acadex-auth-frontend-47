@@ -102,9 +102,11 @@ const QuizResult = () => {
     );
   }
   
-  const totalQuestions = result.answers.length;
-  const correctAnswers = result.answers.filter(answer => answer.is_correct).length;
-  const scorePercentage = Math.round((correctAnswers / totalQuestions) * 100);
+  // Add null check for answers array
+  const answers = result.answers || [];
+  const totalQuestions = answers.length;
+  const correctAnswers = answers.filter(answer => answer.is_correct).length;
+  const scorePercentage = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
   
   return (
     <div className="container mx-auto px-4 py-8">
@@ -132,28 +134,36 @@ const QuizResult = () => {
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Answers Review</h2>
         
-        {result.answers.map((answer, index) => (
-          <Card key={answer.question_id} className={`border-l-4 ${answer.is_correct ? 'border-l-green-500' : 'border-l-red-500'}`}>
-            <CardContent className="py-4">
-              <div className="flex items-start gap-3">
-                <div className="mt-1">
-                  {answer.is_correct ? (
-                    <CheckCircle className="h-5 w-5 text-green-500" />
-                  ) : (
-                    <XCircle className="h-5 w-5 text-red-500" />
-                  )}
+        {answers.length > 0 ? (
+          answers.map((answer, index) => (
+            <Card key={answer.question_id || index} className={`border-l-4 ${answer.is_correct ? 'border-l-green-500' : 'border-l-red-500'}`}>
+              <CardContent className="py-4">
+                <div className="flex items-start gap-3">
+                  <div className="mt-1">
+                    {answer.is_correct ? (
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-red-500" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium">Question {index + 1}</p>
+                    <p className="text-muted-foreground mb-2">Your answer: {answer.selected_option || 'No answer'}</p>
+                    {!answer.is_correct && answer.correct_option && (
+                      <p className="text-sm text-green-600">Correct answer: {answer.correct_option}</p>
+                    )}
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <p className="font-medium">Question {index + 1}</p>
-                  <p className="text-muted-foreground mb-2">Your answer: {answer.selected_option || 'No answer'}</p>
-                  {!answer.is_correct && answer.correct_option && (
-                    <p className="text-sm text-green-600">Correct answer: {answer.correct_option}</p>
-                  )}
-                </div>
-              </div>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <Card>
+            <CardContent className="py-4 text-center">
+              <p className="text-muted-foreground">No answer details available.</p>
             </CardContent>
           </Card>
-        ))}
+        )}
       </div>
     </div>
   );
