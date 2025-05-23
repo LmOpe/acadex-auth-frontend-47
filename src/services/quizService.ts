@@ -1,4 +1,3 @@
-
 import authService from './authService';
 import { format } from 'date-fns';
 
@@ -55,11 +54,17 @@ export interface SelectedAnswer {
 
 export interface QuizSubmissionResponse {
   score: number;
-  answers: {
+  answers?: {
     question_id: string;
     selected_option: string;
     is_correct: boolean;
     correct_option?: string;
+  }[];
+  quiz_questions?: {
+    question_id: string;
+    question_text: string;
+    selected_option_text: string;
+    is_correct: boolean;
   }[];
 }
 
@@ -116,7 +121,21 @@ const quizService = {
       attempt_id: attemptId,
       answers: answers
     });
-    return response.data;
+    
+    // Transform the response if needed to match our expected format
+    const data = response.data;
+    
+    // Check if the response is in the new format with quiz_questions
+    if (data.quiz_questions && !data.answers) {
+      // Transform quiz_questions to answers format for consistency
+      data.answers = data.quiz_questions.map(q => ({
+        question_id: q.question_id,
+        selected_option: q.selected_option_text,
+        is_correct: q.is_correct
+      }));
+    }
+    
+    return data;
   },
   
   // Get all quiz attempts by student
@@ -128,7 +147,21 @@ const quizService = {
   // Get quiz result detail
   getQuizResult: async (quizId: string): Promise<QuizSubmissionResponse> => {
     const response = await api.get(`/api/quizzes/${quizId}/students/result/`);
-    return response.data;
+    
+    // Transform the response if needed to match our expected format
+    const data = response.data;
+    
+    // Check if the response is in the new format with quiz_questions
+    if (data.quiz_questions && !data.answers) {
+      // Transform quiz_questions to answers format for consistency
+      data.answers = data.quiz_questions.map(q => ({
+        question_id: q.question_id,
+        selected_option: q.selected_option_text,
+        is_correct: q.is_correct
+      }));
+    }
+    
+    return data;
   },
   
   // Helper function to convert UTC date string to local time

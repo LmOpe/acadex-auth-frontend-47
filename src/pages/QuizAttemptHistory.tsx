@@ -47,7 +47,8 @@ const QuizAttemptHistory = () => {
   }, []);
 
   const handleGoBack = () => {
-    navigate(-1);
+    // Directly navigate to dashboard instead of using navigate(-1)
+    navigate('/dashboard');
   };
 
   const handleViewResult = (attempt: StudentAttemptSummary) => {
@@ -55,7 +56,7 @@ const QuizAttemptHistory = () => {
       state: {
         result: null, // This will be fetched in the result page
         quizTitle: attempt.title,
-        returnPath: "/quiz-attempts"
+        returnPath: "/dashboard" // Always return to dashboard
       }
     });
   };
