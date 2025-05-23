@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
@@ -12,7 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, Calendar, Clock } from 'lucide-react';
-import { toast } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 import quizService, { CourseQuizzes, Quiz, StudentAttemptSummary } from '@/services/quizService';
 import { CourseEnrollment } from '@/services/courseService';
 
@@ -92,11 +91,7 @@ const PendingQuizzes = ({ enrolledCourses }: PendingQuizzesProps) => {
       if (!attempt.quiz_questions || attempt.quiz_questions.length === 0) {
         setAttemptError('No questions available for this quiz. Please try again later.');
         setAttemptingQuizId(null);
-        toast({
-          title: "Quiz Error",
-          description: "This quiz doesn't have any questions yet. Please try again later.",
-          variant: "destructive"
-        });
+        toast.error("This quiz doesn't have any questions yet. Please try again later.");
         return;
       }
       
@@ -106,11 +101,7 @@ const PendingQuizzes = ({ enrolledCourses }: PendingQuizzesProps) => {
     } catch (err: any) {
       console.error('Error attempting quiz:', err);
       setAttemptError(err.response?.data?.detail || 'Failed to start quiz');
-      toast({
-        title: "Quiz Error",
-        description: err.response?.data?.detail || 'Failed to start quiz',
-        variant: "destructive"
-      });
+      toast.error(err.response?.data?.detail || 'Failed to start quiz');
       setAttemptingQuizId(null);
     }
   };
