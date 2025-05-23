@@ -14,6 +14,10 @@ import RegisterLecturer from "./pages/RegisterLecturer";
 import Dashboard from "./pages/Dashboard";
 import CourseDetails from "./pages/CourseDetails"; 
 import QuizDetails from "./pages/QuizDetails";
+import StudentCourseQuizzes from "./pages/StudentCourseQuizzes";
+import QuizAttempt from "./pages/QuizAttempt";
+import QuizResult from "./pages/QuizResult";
+import QuizAttemptHistory from "./pages/QuizAttemptHistory";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -48,10 +52,42 @@ const App = () => (
               } 
             />
             <Route 
+              path="/courses/:courseId/quizzes" 
+              element={
+                <ProtectedRoute>
+                  <StudentCourseQuizzes />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
               path="/quizzes/:quizId" 
               element={
                 <ProtectedRoute>
                   <QuizDetails />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/quizzes/:quizId/attempt" 
+              element={
+                <ProtectedRoute>
+                  <QuizAttempt />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/quizzes/:quizId/result" 
+              element={
+                <ProtectedRoute>
+                  <QuizResult />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/quiz-attempts" 
+              element={
+                <ProtectedRoute>
+                  <QuizAttemptHistory />
                 </ProtectedRoute>
               } 
             />

@@ -4,12 +4,14 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
 import CreateCourseForm from '@/components/course/CreateCourseForm';
 import CourseList from '@/components/course/CourseList';
 import AvailableCourses from '@/components/student/AvailableCourses';
 import EnrolledCourses from '@/components/student/EnrolledCourses';
+import PendingQuizzes from '@/components/student/PendingQuizzes';
 import courseService, { CourseEnrollment } from '@/services/courseService';
+import { ClipboardList } from 'lucide-react';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
@@ -106,7 +108,15 @@ const Dashboard = () => {
           <h1 className="text-3xl font-bold text-acadex-primary">Student Dashboard</h1>
           <p className="text-muted-foreground">Welcome back, {user.firstName} {user.lastName}</p>
         </div>
-        <Button variant="outline" onClick={logout}>Sign Out</Button>
+        <div className="flex gap-2">
+          <Button variant="outline" asChild>
+            <Link to="/quiz-attempts">
+              <ClipboardList className="h-4 w-4 mr-2" />
+              Quiz History
+            </Link>
+          </Button>
+          <Button variant="outline" onClick={logout}>Sign Out</Button>
+        </div>
       </div>
       
       <div className="grid md:grid-cols-3 gap-6 mb-8">
@@ -125,6 +135,12 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
+      </div>
+      
+      {/* Pending Quizzes Section */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-semibold mb-4">Pending Quizzes</h2>
+        <PendingQuizzes enrolledCourses={enrolledCourses} />
       </div>
       
       <Tabs value={studentActiveTab} onValueChange={setStudentActiveTab}>

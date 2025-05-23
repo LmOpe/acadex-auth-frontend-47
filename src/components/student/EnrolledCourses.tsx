@@ -1,8 +1,10 @@
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, BookOpen, Calendar } from 'lucide-react';
+import { AlertCircle, BookOpen, Calendar, Clock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 import courseService, { CourseEnrollment } from '@/services/courseService';
 
 interface EnrolledCoursesProps {
@@ -76,6 +78,20 @@ const EnrolledCourses = ({ refreshTrigger }: EnrolledCoursesProps) => {
               <span>Enrolled on: {new Date(enrollment.enrollment_date).toLocaleDateString()}</span>
             </div>
           </CardContent>
+          <CardFooter>
+            <Button 
+              variant="outline" 
+              className="w-full"
+              asChild
+            >
+              <Link 
+                to={`/courses/${enrollment.course}/quizzes`} 
+                state={{ courseTitle: enrollment.course_title }}
+              >
+                View Quizzes
+              </Link>
+            </Button>
+          </CardFooter>
         </Card>
       ))}
     </div>
