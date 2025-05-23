@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { 
   Card, 
   CardContent, 
@@ -50,13 +50,23 @@ const QuizAttemptHistory = () => {
     navigate(-1);
   };
 
+  const handleViewResult = (attempt: StudentAttemptSummary) => {
+    navigate(`/quizzes/${attempt.quiz_id}/result`, {
+      state: {
+        result: null, // This will be fetched in the result page
+        quizTitle: attempt.title,
+        returnPath: "/quiz-attempts"
+      }
+    });
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-acadex-primary">Quiz Attempts</h1>
           <Button variant="outline" onClick={handleGoBack}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back
           </Button>
         </div>
         <div className="flex justify-center my-8">
@@ -72,7 +82,7 @@ const QuizAttemptHistory = () => {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-acadex-primary">Quiz Attempts</h1>
           <Button variant="outline" onClick={handleGoBack}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back
           </Button>
         </div>
         <Alert variant="destructive" className="my-4">
@@ -89,7 +99,7 @@ const QuizAttemptHistory = () => {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-acadex-primary">Quiz Attempts</h1>
           <Button variant="outline" onClick={handleGoBack}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back
           </Button>
         </div>
         <Card className="border-dashed border-2 bg-muted/50">
@@ -150,10 +160,12 @@ const QuizAttemptHistory = () => {
                     )}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button size="sm" variant="outline" asChild>
-                      <Link to={`/quizzes/${attempt.quiz_id}/result`}>
-                        View Result
-                      </Link>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleViewResult(attempt)}
+                    >
+                      View Result
                     </Button>
                   </TableCell>
                 </TableRow>

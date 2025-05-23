@@ -1,31 +1,110 @@
 
+import { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, CheckCircle, XCircle } from 'lucide-react';
 import { QuizSubmissionResponse } from '@/services/quizService';
+import quizService from '@/services/quizService';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 const QuizResult = () => {
   const { quizId } = useParams<{ quizId: string }>();
   const location = useLocation();
   const navigate = useNavigate();
   
-  const result = location.state?.result as QuizSubmissionResponse;
+  const [result, setResult] = useState<QuizSubmissionResponse | null>(
+    location.state?.result || null
+  );
   const quizTitle = location.state?.quizTitle || 'Quiz';
   const returnPath = location.state?.returnPath || '/dashboard';
   
+  const [loading, setLoading] = useState(!location.state?.result);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchResult = async () => {
+      if (result || !quizId) return;
+      
+      try {
+        setLoading(true);
+        const resultData = await quizService.getQuizResult(quizId);
+        setResult(resultData);
+      } catch (err: any) {
+        console.error('Error fetching quiz result:', err);
+        setError(err.response?.data?.detail || 'Failed to load quiz result');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchResult();
+  }, [quizId, result]);
+  
+  const handleGoBack = () => {
+    navigate(returnPath);
+  };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-acadex-primary">{quizTitle} Results</h1>
+          </div>
+          <Button variant="outline" onClick={handleGoBack}>
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back
+          </Button>
+        </div>
+        <div className="flex justify-center my-8">
+          <div className="animate-pulse text-acadex-primary">Loading quiz results...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-acadex-primary">{quizTitle} Results</h1>
+          </div>
+          <Button variant="outline" onClick={handleGoBack}>
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back
+          </Button>
+        </div>
+        <Alert variant="destructive" className="my-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+  
   if (!result) {
-    navigate('/dashboard');
-    return null;
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-acadex-primary">{quizTitle} Results</h1>
+          </div>
+          <Button variant="outline" onClick={handleGoBack}>
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back
+          </Button>
+        </div>
+        <Alert variant="destructive" className="my-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>No result data available.</AlertDescription>
+        </Alert>
+      </div>
+    );
   }
   
   const totalQuestions = result.answers.length;
   const correctAnswers = result.answers.filter(answer => answer.is_correct).length;
   const scorePercentage = Math.round((correctAnswers / totalQuestions) * 100);
-  
-  const handleGoBack = () => {
-    navigate(returnPath);
-  };
   
   return (
     <div className="container mx-auto px-4 py-8">
