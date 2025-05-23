@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, Calendar, Clock } from 'lucide-react';
+import { toast } from '@/components/ui/sonner';
 import quizService, { CourseQuizzes, Quiz, StudentAttemptSummary } from '@/services/quizService';
 import { CourseEnrollment } from '@/services/courseService';
 
@@ -24,6 +25,8 @@ const PendingQuizzes = ({ enrolledCourses }: PendingQuizzesProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [attemptedQuizIds, setAttemptedQuizIds] = useState<Set<string>>(new Set());
+  const [attemptingQuizId, setAttemptingQuizId] = useState<string | null>(null);
+  const [attemptError, setAttemptError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchQuizzes = async () => {
@@ -77,6 +80,41 @@ const PendingQuizzes = ({ enrolledCourses }: PendingQuizzesProps) => {
     }
   }, [enrolledCourses]);
 
+  const handleAttemptQuiz = async (quiz: Quiz) => {
+    try {
+      setAttemptingQuizId(quiz.id);
+      setAttemptError(null);
+      
+      // Try to start the quiz attempt
+      const attempt = await quizService.startQuizAttempt(quiz.id);
+      
+      // Check if the quiz has questions
+      if (!attempt.quiz_questions || attempt.quiz_questions.length === 0) {
+        setAttemptError('No questions available for this quiz. Please try again later.');
+        setAttemptingQuizId(null);
+        toast({
+          title: "Quiz Error",
+          description: "This quiz doesn't have any questions yet. Please try again later.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // If successful, navigate to attempt page using window.location.href
+      window.location.href = `/quizzes/${quiz.id}/attempt`;
+      
+    } catch (err: any) {
+      console.error('Error attempting quiz:', err);
+      setAttemptError(err.response?.data?.detail || 'Failed to start quiz');
+      toast({
+        title: "Quiz Error",
+        description: err.response?.data?.detail || 'Failed to start quiz',
+        variant: "destructive"
+      });
+      setAttemptingQuizId(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center my-4">
@@ -110,6 +148,12 @@ const PendingQuizzes = ({ enrolledCourses }: PendingQuizzesProps) => {
 
   return (
     <div className="space-y-4">
+      {attemptError && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{attemptError}</AlertDescription>
+        </Alert>
+      )}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
         {quizzes.map((quiz: any) => (
           <Card key={quiz.id} className="border-l-4 border-l-acadex-primary">
@@ -133,10 +177,12 @@ const PendingQuizzes = ({ enrolledCourses }: PendingQuizzesProps) => {
               </div>
             </CardContent>
             <CardFooter>
-              <Button asChild className="w-full">
-                <Link to={`/quizzes/${quiz.id}/attempt`} state={{ quiz, returnPath: "/dashboard" }}>
-                  Start Quiz
-                </Link>
+              <Button 
+                className="w-full"
+                onClick={() => handleAttemptQuiz(quiz)}
+                disabled={attemptingQuizId === quiz.id}
+              >
+                {attemptingQuizId === quiz.id ? "Loading..." : "Start Quiz"}
               </Button>
             </CardFooter>
           </Card>
