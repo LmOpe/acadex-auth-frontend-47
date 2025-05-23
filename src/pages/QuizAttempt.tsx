@@ -23,6 +23,7 @@ const QuizAttemptPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const quiz = location.state?.quiz;
+  const returnPath = location.state?.returnPath || "/dashboard";
   
   const [attempt, setAttempt] = useState<QuizAttempt | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -106,6 +107,11 @@ const QuizAttemptPage = () => {
     }
   };
 
+  // Navigate back to previous page
+  const handleGoBack = () => {
+    navigate(returnPath);
+  };
+
   // Submit quiz answers
   const handleSubmit = async (isAutoSubmit = false) => {
     if (!attempt) return;
@@ -174,8 +180,8 @@ const QuizAttemptPage = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-acadex-primary">Quiz Error</h1>
-          <Button variant="outline" asChild>
-            <a href="/dashboard"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard</a>
+          <Button variant="outline" onClick={handleGoBack}>
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back
           </Button>
         </div>
         <Alert variant="destructive" className="my-4">
@@ -192,8 +198,8 @@ const QuizAttemptPage = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-acadex-primary">Quiz Error</h1>
-          <Button variant="outline" asChild>
-            <a href="/dashboard"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard</a>
+          <Button variant="outline" onClick={handleGoBack}>
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back
           </Button>
         </div>
         <Alert variant="destructive" className="my-4">

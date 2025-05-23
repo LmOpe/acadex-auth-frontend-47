@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, Calendar, Clock } from 'lucide-react';
-import quizService, { CourseQuizzes, Quiz } from '@/services/quizService';
+import quizService, { CourseQuizzes, Quiz, StudentAttemptSummary } from '@/services/quizService';
 import { CourseEnrollment } from '@/services/courseService';
 
 interface PendingQuizzesProps {
@@ -23,6 +23,7 @@ const PendingQuizzes = ({ enrolledCourses }: PendingQuizzesProps) => {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [attemptedQuizIds, setAttemptedQuizIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchQuizzes = async () => {
@@ -33,16 +34,21 @@ const PendingQuizzes = ({ enrolledCourses }: PendingQuizzesProps) => {
         // Get all quizzes
         const allCourseQuizzes = await quizService.getAllQuizzes();
         
+        // Get attempted quizzes to filter them out
+        const attempts = await quizService.getStudentAttempts();
+        const attemptedIds = new Set(attempts.quizzes.map(attempt => attempt.quiz_id));
+        setAttemptedQuizIds(attemptedIds);
+        
         // Filter quizzes for enrolled courses
         const enrolledCourseIds = new Set(enrolledCourses.map(enrollment => enrollment.course));
         
-        // Get active quizzes for enrolled courses
+        // Get active quizzes for enrolled courses that haven't been attempted
         const activeQuizzes: Quiz[] = [];
         
         allCourseQuizzes.forEach(courseQuiz => {
           if (enrolledCourseIds.has(courseQuiz.course_id)) {
             courseQuiz.quizzes.forEach(quiz => {
-              if (quizService.isQuizActive(quiz)) {
+              if (quizService.isQuizActive(quiz) && !attemptedIds.has(quiz.id)) {
                 // Add course details to quiz for display
                 const quizWithDetails = {
                   ...quiz,
@@ -128,7 +134,7 @@ const PendingQuizzes = ({ enrolledCourses }: PendingQuizzesProps) => {
             </CardContent>
             <CardFooter>
               <Button asChild className="w-full">
-                <Link to={`/quizzes/${quiz.id}/attempt`} state={{ quiz }}>
+                <Link to={`/quizzes/${quiz.id}/attempt`} state={{ quiz, returnPath: "/dashboard" }}>
                   Start Quiz
                 </Link>
               </Button>

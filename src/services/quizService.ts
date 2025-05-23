@@ -15,6 +15,8 @@ export interface Quiz {
   allotted_time: string;
   is_active: boolean;
   created_at: string;
+  courseTitle?: string;
+  courseCode?: string;
 }
 
 export interface CourseQuizzes {
@@ -88,6 +90,18 @@ const quizService = {
     // Find the course with matching ID
     const courseData = allCourses.find(course => course.course_id === courseId);
     return courseData?.quizzes || [];
+  },
+  
+  // Check if a quiz has been attempted
+  hasAttemptedQuiz: async (quizId: string): Promise<boolean> => {
+    try {
+      const response = await api.get('/api/quizzes/students/attempts/');
+      const attempts = response.data.quizzes as StudentAttemptSummary[];
+      return attempts.some(attempt => attempt.quiz_id === quizId);
+    } catch (error) {
+      console.error('Error checking if quiz was attempted:', error);
+      return false;
+    }
   },
   
   // Start a quiz attempt

@@ -1,30 +1,41 @@
 
 import { useState, useEffect } from 'react';
-import { useParams, useLocation, Link } from 'react-router-dom';
+import { useParams, useLocation, Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, ArrowLeft, Clock, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import quizService, { Quiz } from '@/services/quizService';
+import quizService, { Quiz, StudentAttemptSummary } from '@/services/quizService';
 
 const StudentCourseQuizzes = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const location = useLocation();
+  const navigate = useNavigate();
   const courseTitle = location.state?.courseTitle || 'Course';
   
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [attemptedQuizIds, setAttemptedQuizIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [attemptError, setAttemptError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchQuizzes = async () => {
+    const fetchData = async () => {
       if (!courseId) return;
       
       try {
         setLoading(true);
         setError(null);
+
+        // Fetch quizzes for this course
         const data = await quizService.getCourseQuizzes(courseId);
+        
+        // Fetch attempted quizzes to mark them
+        const attempts = await quizService.getStudentAttempts();
+        const attemptedIds = new Set(attempts.quizzes.map((attempt: StudentAttemptSummary) => attempt.quiz_id));
+        setAttemptedQuizIds(attemptedIds);
+        
         setQuizzes(data);
       } catch (err: any) {
         console.error('Error fetching quizzes:', err);
@@ -34,8 +45,22 @@ const StudentCourseQuizzes = () => {
       }
     };
 
-    fetchQuizzes();
+    fetchData();
   }, [courseId]);
+
+  const handleGoBack = () => {
+    navigate(-1);
+  };
+
+  const handleAttemptQuiz = async (quiz: Quiz) => {
+    try {
+      setAttemptError(null);
+      navigate(`/quizzes/${quiz.id}/attempt`, { state: { quiz, returnPath: `/courses/${courseId}/quizzes` } });
+    } catch (err: any) {
+      console.error('Error attempting quiz:', err);
+      setAttemptError(err.response?.data?.detail || 'Failed to start quiz');
+    }
+  };
 
   if (loading) {
     return (
@@ -44,8 +69,8 @@ const StudentCourseQuizzes = () => {
           <div>
             <h1 className="text-3xl font-bold text-acadex-primary">{courseTitle} - Quizzes</h1>
           </div>
-          <Button variant="outline" asChild>
-            <Link to="/dashboard"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard</Link>
+          <Button variant="outline" onClick={handleGoBack}>
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back
           </Button>
         </div>
         <div className="flex justify-center my-8">
@@ -62,8 +87,8 @@ const StudentCourseQuizzes = () => {
           <div>
             <h1 className="text-3xl font-bold text-acadex-primary">{courseTitle} - Quizzes</h1>
           </div>
-          <Button variant="outline" asChild>
-            <Link to="/dashboard"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard</Link>
+          <Button variant="outline" onClick={handleGoBack}>
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back
           </Button>
         </div>
         <Alert variant="destructive" className="my-4">
@@ -81,10 +106,17 @@ const StudentCourseQuizzes = () => {
           <h1 className="text-3xl font-bold text-acadex-primary">{courseTitle} - Quizzes</h1>
           <p className="text-muted-foreground">View and attempt quizzes for this course</p>
         </div>
-        <Button variant="outline" asChild>
-          <Link to="/dashboard"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard</Link>
+        <Button variant="outline" onClick={handleGoBack}>
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back
         </Button>
       </div>
+
+      {attemptError && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{attemptError}</AlertDescription>
+        </Alert>
+      )}
 
       {quizzes.length === 0 ? (
         <Card className="border-dashed border-2 bg-muted/50">
@@ -102,15 +134,21 @@ const StudentCourseQuizzes = () => {
             const isActive = quizService.isQuizActive(quiz);
             const hasStarted = new Date() >= new Date(quiz.start_date_time);
             const hasEnded = new Date() > new Date(quiz.end_date_time);
+            const isAttempted = attemptedQuizIds.has(quiz.id);
             
             return (
-              <Card key={quiz.id}>
+              <Card key={quiz.id} className={isAttempted ? "opacity-70" : ""}>
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <CardTitle className="text-lg font-medium">{quiz.title}</CardTitle>
-                    <Badge variant={isActive ? "default" : "outline"}>
-                      {isActive ? 'Active' : hasEnded ? 'Ended' : hasStarted ? 'Starting Soon' : 'Upcoming'}
-                    </Badge>
+                    <div className="flex gap-2">
+                      {isAttempted && (
+                        <Badge variant="outline">Attempted</Badge>
+                      )}
+                      <Badge variant={isActive ? "default" : "outline"}>
+                        {isActive ? 'Active' : hasEnded ? 'Ended' : hasStarted ? 'Starting Soon' : 'Upcoming'}
+                      </Badge>
+                    </div>
                   </div>
                   <CardDescription>
                     {quiz.number_of_questions} questions · {quiz.allotted_time} duration
@@ -129,18 +167,19 @@ const StudentCourseQuizzes = () => {
                 <CardFooter>
                   <Button 
                     className="w-full" 
-                    disabled={!isActive}
-                    asChild={isActive}
+                    disabled={!isActive || isAttempted}
+                    onClick={() => isActive && !isAttempted && handleAttemptQuiz(quiz)}
                   >
-                    {isActive ? (
-                      <Link to={`/quizzes/${quiz.id}/attempt`} state={{ quiz }}>
-                        Attempt Quiz
-                      </Link>
-                    ) : (
-                      <span>
-                        {hasEnded ? 'Quiz Ended' : hasStarted ? 'Not Available' : 'Not Started Yet'}
-                      </span>
-                    )}
+                    {isAttempted 
+                      ? "Already Attempted" 
+                      : isActive 
+                        ? "Attempt Quiz"
+                        : hasEnded 
+                          ? 'Quiz Ended' 
+                          : hasStarted 
+                            ? 'Not Available' 
+                            : 'Not Started Yet'
+                    }
                   </Button>
                 </CardFooter>
               </Card>

@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Card, 
   CardContent, 
@@ -26,6 +26,7 @@ const QuizAttemptHistory = () => {
   const [attempts, setAttempts] = useState<StudentAttemptSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchAttempts = async () => {
@@ -45,13 +46,17 @@ const QuizAttemptHistory = () => {
     fetchAttempts();
   }, []);
 
+  const handleGoBack = () => {
+    navigate(-1);
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-acadex-primary">Quiz Attempts</h1>
-          <Button variant="outline" asChild>
-            <Link to="/dashboard"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard</Link>
+          <Button variant="outline" onClick={handleGoBack}>
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
           </Button>
         </div>
         <div className="flex justify-center my-8">
@@ -66,8 +71,8 @@ const QuizAttemptHistory = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-acadex-primary">Quiz Attempts</h1>
-          <Button variant="outline" asChild>
-            <Link to="/dashboard"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard</Link>
+          <Button variant="outline" onClick={handleGoBack}>
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
           </Button>
         </div>
         <Alert variant="destructive" className="my-4">
@@ -83,8 +88,8 @@ const QuizAttemptHistory = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-acadex-primary">Quiz Attempts</h1>
-          <Button variant="outline" asChild>
-            <Link to="/dashboard"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard</Link>
+          <Button variant="outline" onClick={handleGoBack}>
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
           </Button>
         </div>
         <Card className="border-dashed border-2 bg-muted/50">
@@ -107,8 +112,8 @@ const QuizAttemptHistory = () => {
           <h1 className="text-3xl font-bold text-acadex-primary">Quiz Attempts</h1>
           <p className="text-muted-foreground">View your past quiz attempts</p>
         </div>
-        <Button variant="outline" asChild>
-          <Link to="/dashboard"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard</Link>
+        <Button variant="outline" onClick={handleGoBack}>
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back
         </Button>
       </div>
 
