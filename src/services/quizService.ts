@@ -1,3 +1,4 @@
+
 import authService from './authService';
 import { format } from 'date-fns';
 
@@ -81,27 +82,6 @@ export interface StudentAttemptSummary {
 
 export interface StudentAttemptsResponse {
   quizzes: StudentAttemptSummary[];
-}
-
-export interface StudentAttempt {
-  student: string;
-  score: number;
-  attempt_time: string;
-  submitted: boolean;
-}
-
-export interface QuizAttemptsResponse {
-  students: StudentAttempt[];
-}
-
-export interface StudentQuizResult {
-  score: number;
-  answers: {
-    question_id: string;
-    selected_option: string;
-    is_correct: boolean;
-    correct_option?: string;
-  }[];
 }
 
 const quizService = {
@@ -230,19 +210,7 @@ const quizService = {
   formatDateTime: (dateTimeString: string): string => {
     const localDate = new Date(dateTimeString);
     return format(localDate, 'MMM d, yyyy h:mm a');
-  },
-  
-  // Get quiz attempts by students
-  getQuizAttempts: async (quizId: string): Promise<QuizAttemptsResponse> => {
-    const response = await api.get(`/api/quizzes/${quizId}/attempts/`);
-    return response.data;
-  },
-  
-  // Get specific student's quiz result
-  getStudentQuizResult: async (quizId: string, studentMatric: string): Promise<StudentQuizResult> => {
-    const response = await api.get(`/api/quizzes/results/${quizId}/${studentMatric}/`);
-    return response.data;
-  },
+  }
 };
 
 export default quizService;
