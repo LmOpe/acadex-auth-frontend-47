@@ -33,13 +33,22 @@ const StudentCourseQuizzes = () => {
 
         // Fetch quizzes for this course
         const data = await quizService.getCourseQuizzes(courseId);
-        
-        // Fetch attempted quizzes to mark them
-        const attempts = await quizService.getStudentAttempts();
-        const attemptedIds = new Set(attempts.quizzes.map((attempt: StudentAttemptSummary) => attempt.quiz_id));
-        setAttemptedQuizIds(attemptedIds);
-        
         setQuizzes(data);
+
+        // Try fetching attempted quizzes
+        try {
+          const attempts = await quizService.getStudentAttempts();
+          const attemptedIds = new Set(attempts.quizzes.map((attempt: StudentAttemptSummary) => attempt.quiz_id));
+          setAttemptedQuizIds(attemptedIds);
+        } catch (attemptsErr: any) {
+          if (attemptsErr.response?.status === 404) {
+            // No attempts yet — initialize with empty set
+            setAttemptedQuizIds(new Set());
+          } else {
+            throw attemptsErr; // Rethrow unexpected errors
+          }
+        }
+
       } catch (err: any) {
         console.error('Error fetching quizzes:', err);
         setError(err.response?.data?.detail || 'Failed to load quizzes');
@@ -50,6 +59,7 @@ const StudentCourseQuizzes = () => {
 
     fetchData();
   }, [courseId]);
+
 
   const handleGoBack = () => {
     navigate(-1);
