@@ -205,7 +205,11 @@ export default function CreateQuizForm({ courseId, onSuccess }: CreateQuizFormPr
                           selected={field.value}
                           onSelect={field.onChange}
                           initialFocus
-                          disabled={(date) => date < new Date()}
+                          disabled={(date) => {
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            return date < today;
+                          }}
                           className={cn("p-3 pointer-events-auto")}
                         />
                         <div className="p-3 border-t border-border">
