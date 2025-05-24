@@ -35,16 +35,26 @@ const PendingQuizzes = ({ enrolledCourses }: PendingQuizzesProps) => {
         const allCourseQuizzes = await quizService.getAllQuizzes();
         
         // Get attempted quizzes to filter them out
-        const attempts = await quizService.getStudentAttempts();
-        const attemptedIds = new Set(attempts.quizzes.map(attempt => attempt.quiz_id));
-        setAttemptedQuizIds(attemptedIds);
-        
+        let attemptedIds = new Set<string>();
+        try {
+          const attempts = await quizService.getStudentAttempts();
+          attemptedIds = new Set(attempts.quizzes.map(attempt => attempt.quiz_id));
+          setAttemptedQuizIds(attemptedIds);
+        } catch (attemptsErr: any) {
+          if (attemptsErr.response?.status === 404) {
+            // No attempts exist yet — not an error.
+            attemptedIds = new Set();
+            setAttemptedQuizIds(new Set());
+          } else {
+            throw attemptsErr; // Re-throw actual errors
+          }
+        }
+
         // Filter quizzes for enrolled courses
         const enrolledCourseIds = new Set(enrolledCourses.map(enrollment => enrollment.course));
         
         // Get active quizzes for enrolled courses that haven't been attempted
         const activeQuizzes: Quiz[] = [];
-        
         allCourseQuizzes.forEach(courseQuiz => {
           if (enrolledCourseIds.has(courseQuiz.course_id)) {
             courseQuiz.quizzes.forEach(quiz => {
