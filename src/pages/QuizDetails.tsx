@@ -10,6 +10,7 @@ import { ArrowLeft, Clock, Calendar, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import CreateQuizQuestionForm from '@/components/quiz/CreateQuizQuestionForm';
 import QuizQuestionsList from '@/components/quiz/QuizQuestionsList';
+import QuizAttempts from '@/components/quiz/QuizAttempts';
 import courseService, { Quiz, Course } from '@/services/courseService';
 
 const QuizDetails = () => {
@@ -54,6 +55,9 @@ const QuizDetails = () => {
     navigate(`/courses/${courseId}`, { state: { course } });
   };
 
+  // Check if user is a lecturer
+  const isLecturer = user?.role?.toUpperCase() === 'LECTURER';
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6">
@@ -68,10 +72,11 @@ const QuizDetails = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-3 mb-8">
+        <TabsList className={`grid ${isLecturer ? 'grid-cols-4' : 'grid-cols-3'} mb-8`}>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="questions">Quiz Questions</TabsTrigger>
-          <TabsTrigger value="add-questions">Add Questions</TabsTrigger>
+          {isLecturer && <TabsTrigger value="add-questions">Add Questions</TabsTrigger>}
+          {isLecturer && <TabsTrigger value="attempts">Student Attempts</TabsTrigger>}
         </TabsList>
         
         <TabsContent value="overview">
@@ -127,9 +132,17 @@ const QuizDetails = () => {
           <QuizQuestionsList quizId={quizId || ''} refreshTrigger={refreshTrigger} />
         </TabsContent>
         
-        <TabsContent value="add-questions">
-          <CreateQuizQuestionForm quizId={quizId || ''} onSuccess={handleQuestionsUpdated} />
-        </TabsContent>
+        {isLecturer && (
+          <TabsContent value="add-questions">
+            <CreateQuizQuestionForm quizId={quizId || ''} onSuccess={handleQuestionsUpdated} />
+          </TabsContent>
+        )}
+        
+        {isLecturer && (
+          <TabsContent value="attempts">
+            <QuizAttempts quizId={quizId || ''} />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
