@@ -5,6 +5,7 @@ import {
   CardContent, 
   CardHeader, 
   CardTitle, 
+  CardFooter, 
   CardDescription 
 } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -35,6 +36,9 @@ const QuizAttemptPage = () => {
   const timerIntervalRef = useRef<number | null>(null);
   const endTimeRef = useRef<string | null>(null);
   const autoSubmitTimeoutRef = useRef<number | null>(null);
+
+  // Store selected answers in a ref to access current state in callbacks
+  const selectedAnswersRef = useRef<Map<string, string>>(new Map());
 
   // Initialize timer and countdown (no longer starts quiz attempt)
   const initializeTimer = useCallback((quizAttempt: QuizAttempt) => {
@@ -86,6 +90,8 @@ const QuizAttemptPage = () => {
     const updatedAnswers = new Map(selectedAnswers);
     updatedAnswers.set(questionId, answerId);
     setSelectedAnswers(updatedAnswers);
+    // Keep ref in sync with state for auto-submit callback
+    selectedAnswersRef.current = updatedAnswers;
   };
 
   // Navigate between questions
@@ -114,27 +120,17 @@ const QuizAttemptPage = () => {
       setSubmitting(true);
       
       // Convert Map to array of selected answers
+      const answerMap = isAutoSubmit ? selectedAnswersRef.current : selectedAnswers;
       const answers: SelectedAnswer[] = [];
-      selectedAnswers.forEach((answerId, questionId) => {
+
+      answerMap.forEach((answerId, questionId) => {
         answers.push({
           question_id: questionId,
           selected_option_id: answerId
         });
       });
-      
-      // For questions with no answer selected, we need to add them with empty selection
-      attempt.quiz_questions.forEach(question => {
-        if (!selectedAnswers.has(question.id)) {
-          // If this is an auto-submit and no answer selected, we don't include it
-          if (!isAutoSubmit) {
-            answers.push({
-              question_id: question.id,
-              selected_option_id: ""  // Empty selection
-            });
-          }
-        }
-      });
-      
+      console.log(answerMap)
+      console.log(answers)
       const response = await quizService.submitQuizAttempt(attempt.attempt_id, answers);
       
       // Clear timers
