@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { 
@@ -6,7 +5,6 @@ import {
   CardContent, 
   CardHeader, 
   CardTitle, 
-  CardFooter, 
   CardDescription 
 } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -23,13 +21,14 @@ const QuizAttemptPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const quiz = location.state?.quiz;
+  const attemptFromState = location.state?.attempt; // Get attempt from route state
   const returnPath = location.state?.returnPath || "/dashboard";
   
-  const [attempt, setAttempt] = useState<QuizAttempt | null>(null);
+  const [attempt, setAttempt] = useState<QuizAttempt | null>(attemptFromState || null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Map<string, string>>(new Map());
   const [timeRemaining, setTimeRemaining] = useState<string>("00:00:00");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!attemptFromState); // Only show loading if no attempt passed
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -37,55 +36,50 @@ const QuizAttemptPage = () => {
   const endTimeRef = useRef<string | null>(null);
   const autoSubmitTimeoutRef = useRef<number | null>(null);
 
-  // Function to start the quiz
-  const startQuiz = useCallback(async () => {
-    if (!quizId) return;
+  // Initialize timer and countdown (no longer starts quiz attempt)
+  const initializeTimer = useCallback((quizAttempt: QuizAttempt) => {
+    endTimeRef.current = quizAttempt.end_time;
     
-    try {
-      setLoading(true);
-      setError(null);
-      const quizAttempt = await quizService.startQuizAttempt(quizId);
-      setAttempt(quizAttempt);
-      endTimeRef.current = quizAttempt.end_time;
-      
-      // Calculate time remaining and start countdown
-      const endTime = new Date(quizAttempt.end_time).getTime();
-      const now = new Date().getTime();
-      const timeToEnd = endTime - now;
-      
-      // Set up timer to update every second
-      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-      timerIntervalRef.current = window.setInterval(() => {
-        const remaining = quizService.formatTimeRemaining(quizAttempt.end_time);
-        setTimeRemaining(remaining);
-      }, 1000);
-      
-      // Set up auto-submit when time runs out
-      if (autoSubmitTimeoutRef.current) clearTimeout(autoSubmitTimeoutRef.current);
-      if (timeToEnd > 0) {
-        autoSubmitTimeoutRef.current = window.setTimeout(() => {
-          toast.info("Time's up! Your quiz is being submitted automatically.");
-          handleSubmit(true);
-        }, timeToEnd);
-      }
-      
-    } catch (err: any) {
-      console.error('Error starting quiz:', err);
-      setError(err.response?.data?.detail || 'Failed to start quiz');
-    } finally {
+    // Calculate time remaining and start countdown
+    const endTime = new Date(quizAttempt.end_time).getTime();
+    const now = new Date().getTime();
+    const timeToEnd = endTime - now;
+    
+    // Set up timer to update every second
+    if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    timerIntervalRef.current = window.setInterval(() => {
+      const remaining = quizService.formatTimeRemaining(quizAttempt.end_time);
+      setTimeRemaining(remaining);
+    }, 1000);
+    
+    // Set up auto-submit when time runs out
+    if (autoSubmitTimeoutRef.current) clearTimeout(autoSubmitTimeoutRef.current);
+    if (timeToEnd > 0) {
+      autoSubmitTimeoutRef.current = window.setTimeout(() => {
+        toast.info("Time's up! Your quiz is being submitted automatically.");
+        handleSubmit(true);
+      }, timeToEnd);
+    }
+  }, []);
+
+  // Initialize component
+  useEffect(() => {
+    if (attemptFromState) {
+      // Use the attempt passed from the previous component
+      setAttempt(attemptFromState);
+      initializeTimer(attemptFromState);
+      setLoading(false);
+    } else {
+      // Fallback: if no attempt was passed, show error (shouldn't happen with fixed flow)
+      setError('No quiz attempt data found. Please start the quiz again.');
       setLoading(false);
     }
-  }, [quizId]);
-
-  // Initialize quiz attempt
-  useEffect(() => {
-    startQuiz();
     
     return () => {
       if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
       if (autoSubmitTimeoutRef.current) clearTimeout(autoSubmitTimeoutRef.current);
     };
-  }, [startQuiz]);
+  }, [attemptFromState, initializeTimer]);
 
   // Handle answer selection
   const handleAnswerSelect = (questionId: string, answerId: string) => {

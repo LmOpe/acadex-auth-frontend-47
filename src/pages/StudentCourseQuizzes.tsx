@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card';
@@ -60,7 +59,6 @@ const StudentCourseQuizzes = () => {
     fetchData();
   }, [courseId]);
 
-
   const handleGoBack = () => {
     navigate(-1);
   };
@@ -70,7 +68,7 @@ const StudentCourseQuizzes = () => {
       setAttemptingQuizId(quiz.id);
       setAttemptError(null);
       
-      // Try to start the quiz attempt
+      // Start the quiz attempt here
       const attempt = await quizService.startQuizAttempt(quiz.id);
       
       // Check if the quiz has questions
@@ -80,10 +78,11 @@ const StudentCourseQuizzes = () => {
         return;
       }
       
-      // If successful, navigate to attempt page
+      // Navigate to attempt page with the quiz and attempt data
       navigate(`/quizzes/${quiz.id}/attempt`, { 
         state: { 
           quiz,
+          attempt, // Pass the attempt retrieved here
           returnPath: `/courses/${courseId}/quizzes`
         } 
       });
