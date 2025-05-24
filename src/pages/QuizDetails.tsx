@@ -10,7 +10,6 @@ import { ArrowLeft, Clock, Calendar, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import CreateQuizQuestionForm from '@/components/quiz/CreateQuizQuestionForm';
 import QuizQuestionsList from '@/components/quiz/QuizQuestionsList';
-import QuizAttempts from '@/components/quiz/QuizAttempts';
 import courseService, { Quiz, Course } from '@/services/courseService';
 
 const QuizDetails = () => {
@@ -69,11 +68,10 @@ const QuizDetails = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-4 mb-8">
+        <TabsList className="grid grid-cols-3 mb-8">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="questions">Quiz Questions</TabsTrigger>
           <TabsTrigger value="add-questions">Add Questions</TabsTrigger>
-          <TabsTrigger value="attempts">Student Attempts</TabsTrigger>
         </TabsList>
         
         <TabsContent value="overview">
@@ -131,10 +129,6 @@ const QuizDetails = () => {
         
         <TabsContent value="add-questions">
           <CreateQuizQuestionForm quizId={quizId || ''} onSuccess={handleQuestionsUpdated} />
-        </TabsContent>
-        
-        <TabsContent value="attempts">
-          <QuizAttempts quizId={quizId || ''} />
         </TabsContent>
       </Tabs>
     </div>
