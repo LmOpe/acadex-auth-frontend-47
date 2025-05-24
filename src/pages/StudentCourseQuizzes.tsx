@@ -2,11 +2,22 @@ import { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, ArrowLeft, Clock, Calendar } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Clock, Calendar, Filter, ArrowUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { toast } from '@/components/ui/sonner';
 import quizService, { Quiz, StudentAttemptSummary } from '@/services/quizService';
+
+type SortField = 'title' | 'start_date_time' | 'end_date_time' | 'number_of_questions';
+type SortOrder = 'asc' | 'desc';
+type StatusFilter = 'all' | 'active' | 'upcoming' | 'ended' | 'attempted';
 
 const StudentCourseQuizzes = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -16,11 +27,17 @@ const StudentCourseQuizzes = () => {
   const returnPath = location.state?.returnPath || '/dashboard';
   
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [filteredQuizzes, setFilteredQuizzes] = useState<Quiz[]>([]);
   const [attemptedQuizIds, setAttemptedQuizIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [attemptError, setAttemptError] = useState<string | null>(null);
   const [attemptingQuizId, setAttemptingQuizId] = useState<string | null>(null);
+
+  // Filter and sort states
+  const [sortField, setSortField] = useState<SortField>('start_date_time');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -58,6 +75,66 @@ const StudentCourseQuizzes = () => {
 
     fetchData();
   }, [courseId]);
+
+  // Apply filtering and sorting
+  useEffect(() => {
+    let filtered = [...quizzes];
+
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(quiz => {
+        const isActive = quizService.isQuizActive(quiz);
+        const hasStarted = new Date() >= new Date(quiz.start_date_time);
+        const hasEnded = new Date() > new Date(quiz.end_date_time);
+        const isAttempted = attemptedQuizIds.has(quiz.id);
+
+        switch (statusFilter) {
+          case 'active':
+            return isActive;
+          case 'upcoming':
+            return !hasStarted;
+          case 'ended':
+            return hasEnded;
+          case 'attempted':
+            return isAttempted;
+          default:
+            return true;
+        }
+      });
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let aValue: any, bValue: any;
+
+      switch (sortField) {
+        case 'title':
+          aValue = a.title.toLowerCase();
+          bValue = b.title.toLowerCase();
+          break;
+        case 'start_date_time':
+          aValue = new Date(a.start_date_time);
+          bValue = new Date(b.start_date_time);
+          break;
+        case 'end_date_time':
+          aValue = new Date(a.end_date_time);
+          bValue = new Date(b.end_date_time);
+          break;
+        case 'number_of_questions':
+          aValue = a.number_of_questions;
+          bValue = b.number_of_questions;
+          break;
+        default:
+          return 0;
+      }
+
+      if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    setFilteredQuizzes(filtered);
+  }, [quizzes, attemptedQuizIds, sortField, sortOrder, statusFilter]);
 
   const handleGoBack = () => {
     navigate(-1);
@@ -161,65 +238,109 @@ const StudentCourseQuizzes = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid md:grid-cols-2 gap-4">
-          {quizzes.map((quiz) => {
-            const isActive = quizService.isQuizActive(quiz);
-            const hasStarted = new Date() >= new Date(quiz.start_date_time);
-            const hasEnded = new Date() > new Date(quiz.end_date_time);
-            const isAttempted = attemptedQuizIds.has(quiz.id);
+        <>
+          {/* Filter and Sort Controls */}
+          <div className="flex gap-4 mb-6">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Select value={statusFilter} onValueChange={(value: StatusFilter) => setStatusFilter(value)}>
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Quizzes</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="upcoming">Upcoming</SelectItem>
+                  <SelectItem value="ended">Ended</SelectItem>
+                  <SelectItem value="attempted">Attempted</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             
-            return (
-              <Card key={quiz.id} className={isAttempted ? "opacity-70" : ""}>
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="text-lg font-medium">{quiz.title}</CardTitle>
-                    <div className="flex gap-2">
-                      {isAttempted && (
-                        <Badge variant="outline">Attempted</Badge>
-                      )}
-                      <Badge variant={isActive ? "default" : "outline"}>
-                        {isActive ? 'Active' : hasEnded ? 'Ended' : hasStarted ? 'Starting Soon' : 'Upcoming'}
-                      </Badge>
+            <div className="flex items-center gap-2">
+              <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+              <Select value={`${sortField}-${sortOrder}`} onValueChange={(value) => {
+                const [field, order] = value.split('-') as [SortField, SortOrder];
+                setSortField(field);
+                setSortOrder(order);
+              }}>
+                <SelectTrigger className="w-48">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="title-asc">Title (A-Z)</SelectItem>
+                  <SelectItem value="title-desc">Title (Z-A)</SelectItem>
+                  <SelectItem value="start_date_time-desc">Latest Start</SelectItem>
+                  <SelectItem value="start_date_time-asc">Earliest Start</SelectItem>
+                  <SelectItem value="end_date_time-desc">Latest End</SelectItem>
+                  <SelectItem value="end_date_time-asc">Earliest End</SelectItem>
+                  <SelectItem value="number_of_questions-desc">Most Questions</SelectItem>
+                  <SelectItem value="number_of_questions-asc">Least Questions</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            {filteredQuizzes.map((quiz) => {
+              const isActive = quizService.isQuizActive(quiz);
+              const hasStarted = new Date() >= new Date(quiz.start_date_time);
+              const hasEnded = new Date() > new Date(quiz.end_date_time);
+              const isAttempted = attemptedQuizIds.has(quiz.id);
+              
+              return (
+                <Card key={quiz.id} className={isAttempted ? "opacity-70" : ""}>
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <CardTitle className="text-lg font-medium">{quiz.title}</CardTitle>
+                      <div className="flex gap-2">
+                        {isAttempted && (
+                          <Badge variant="outline">Attempted</Badge>
+                        )}
+                        <Badge variant={isActive ? "default" : "outline"}>
+                          {isActive ? 'Active' : hasEnded ? 'Ended' : hasStarted ? 'Starting Soon' : 'Upcoming'}
+                        </Badge>
+                      </div>
                     </div>
-                  </div>
-                  <CardDescription>
-                    {quiz.number_of_questions} questions · {quiz.allotted_time} duration
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <div className="flex flex-col">
-                      <span>Start: {quizService.formatDateTime(quiz.start_date_time)}</span>
-                      <span>End: {quizService.formatDateTime(quiz.end_date_time)}</span>
+                    <CardDescription>
+                      {quiz.number_of_questions} questions · {quiz.allotted_time} duration
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <div className="flex flex-col">
+                        <span>Start: {quizService.formatDateTime(quiz.start_date_time)}</span>
+                        <span>End: {quizService.formatDateTime(quiz.end_date_time)}</span>
+                      </div>
                     </div>
-                  </div>
-                  <p className="text-muted-foreground line-clamp-2">{quiz.instructions}</p>
-                </CardContent>
-                <CardFooter>
-                  <Button 
-                    className="w-full" 
-                    disabled={!isActive || isAttempted || attemptingQuizId === quiz.id}
-                    onClick={() => isActive && !isAttempted && handleAttemptQuiz(quiz)}
-                  >
-                    {attemptingQuizId === quiz.id
-                      ? "Loading..."
-                      : isAttempted 
-                        ? "Already Attempted" 
-                        : isActive 
-                          ? "Attempt Quiz"
-                          : hasEnded 
-                            ? 'Quiz Ended' 
-                            : hasStarted 
-                              ? 'Not Available' 
-                              : 'Not Started Yet'
-                    }
-                  </Button>
-                </CardFooter>
-              </Card>
-            );
-          })}
-        </div>
+                    <p className="text-muted-foreground line-clamp-2">{quiz.instructions}</p>
+                  </CardContent>
+                  <CardFooter>
+                    <Button 
+                      className="w-full" 
+                      disabled={!isActive || isAttempted || attemptingQuizId === quiz.id}
+                      onClick={() => isActive && !isAttempted && handleAttemptQuiz(quiz)}
+                    >
+                      {attemptingQuizId === quiz.id
+                        ? "Loading..."
+                        : isAttempted 
+                          ? "Already Attempted" 
+                          : isActive 
+                            ? "Attempt Quiz"
+                            : hasEnded 
+                              ? 'Quiz Ended' 
+                              : hasStarted 
+                                ? 'Not Available' 
+                                : 'Not Started Yet'
+                      }
+                    </Button>
+                  </CardFooter>
+                </Card>
+              );
+            })}
+          </div>
+        </>
       )}
     </div>
   );

@@ -17,16 +17,33 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, ArrowLeft, CheckCircle2, Clock } from 'lucide-react';
+import { AlertCircle, ArrowLeft, CheckCircle2, Clock, Filter, ArrowUpDown } from 'lucide-react';
 import quizService, { StudentAttemptSummary } from '@/services/quizService';
+
+type SortField = 'title' | 'attempt_time' | 'score';
+type SortOrder = 'asc' | 'desc';
+type StatusFilter = 'all' | 'submitted' | 'incomplete';
 
 const QuizAttemptHistory = () => {
   const [attempts, setAttempts] = useState<StudentAttemptSummary[]>([]);
+  const [filteredAttempts, setFilteredAttempts] = useState<StudentAttemptSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  // Filter and sort states
+  const [sortField, setSortField] = useState<SortField>('attempt_time');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
   useEffect(() => {
     const fetchAttempts = async () => {
@@ -45,6 +62,46 @@ const QuizAttemptHistory = () => {
     
     fetchAttempts();
   }, []);
+
+  // Apply filtering and sorting
+  useEffect(() => {
+    let filtered = [...attempts];
+
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(attempt => 
+        statusFilter === 'submitted' ? attempt.submitted : !attempt.submitted
+      );
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let aValue: any, bValue: any;
+
+      switch (sortField) {
+        case 'title':
+          aValue = a.title.toLowerCase();
+          bValue = b.title.toLowerCase();
+          break;
+        case 'attempt_time':
+          aValue = new Date(a.attempt_time);
+          bValue = new Date(b.attempt_time);
+          break;
+        case 'score':
+          aValue = a.score;
+          bValue = b.score;
+          break;
+        default:
+          return 0;
+      }
+
+      if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    setFilteredAttempts(filtered);
+  }, [attempts, sortField, sortOrder, statusFilter]);
 
   const handleGoBack = () => {
     navigate(-1);
@@ -130,6 +187,43 @@ const QuizAttemptHistory = () => {
       <Card>
         <CardHeader>
           <CardTitle>Quiz Attempt History</CardTitle>
+          {/* Filter and Sort Controls */}
+          <div className="flex gap-4 pt-4">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Select value={statusFilter} onValueChange={(value: StatusFilter) => setStatusFilter(value)}>
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="submitted">Submitted</SelectItem>
+                  <SelectItem value="incomplete">Incomplete</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+              <Select value={`${sortField}-${sortOrder}`} onValueChange={(value) => {
+                const [field, order] = value.split('-') as [SortField, SortOrder];
+                setSortField(field);
+                setSortOrder(order);
+              }}>
+                <SelectTrigger className="w-48">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="title-asc">Quiz Title (A-Z)</SelectItem>
+                  <SelectItem value="title-desc">Quiz Title (Z-A)</SelectItem>
+                  <SelectItem value="attempt_time-desc">Latest First</SelectItem>
+                  <SelectItem value="attempt_time-asc">Oldest First</SelectItem>
+                  <SelectItem value="score-desc">Highest Score</SelectItem>
+                  <SelectItem value="score-asc">Lowest Score</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -143,7 +237,7 @@ const QuizAttemptHistory = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {attempts.map((attempt) => (
+              {filteredAttempts.map((attempt) => (
                 <TableRow key={attempt.quiz_id}>
                   <TableCell className="font-medium">{attempt.title}</TableCell>
                   <TableCell>{quizService.formatDateTime(attempt.attempt_time)}</TableCell>
