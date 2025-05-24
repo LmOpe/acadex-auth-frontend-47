@@ -108,6 +108,7 @@ const PendingQuizzes = ({ enrolledCourses }: PendingQuizzesProps) => {
       navigate(`/quizzes/${quiz.id}/attempt`, { 
         state: { 
           quiz,
+          attempt,
           returnPath: "/dashboard"
         } 
       });
