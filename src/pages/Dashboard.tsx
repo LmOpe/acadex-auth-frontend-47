@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Navigate, Link } from 'react-router-dom';
 import CreateCourseForm from '@/components/course/CreateCourseForm';
 import CourseList from '@/components/course/CourseList';
@@ -11,7 +12,7 @@ import AvailableCourses from '@/components/student/AvailableCourses';
 import EnrolledCourses from '@/components/student/EnrolledCourses';
 import PendingQuizzes from '@/components/student/PendingQuizzes';
 import courseService, { CourseEnrollment } from '@/services/courseService';
-import { ClipboardList } from 'lucide-react';
+import { ClipboardList, Menu } from 'lucide-react';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
@@ -109,13 +110,40 @@ const Dashboard = () => {
           <p className="text-muted-foreground">Welcome back, {user.firstName} {user.lastName}</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" asChild>
-            <Link to="/quiz-attempts">
-              <ClipboardList className="h-4 w-4 mr-2" />
-              Quiz History
-            </Link>
-          </Button>
-          <Button variant="outline" onClick={logout}>Sign Out</Button>
+          {/* Desktop buttons */}
+          <div className="hidden md:flex gap-2">
+            <Button variant="outline" asChild>
+              <Link to="/quiz-attempts">
+                <ClipboardList className="h-4 w-4 mr-2" />
+                Quiz History
+              </Link>
+            </Button>
+            <Button variant="outline" onClick={logout}>Sign Out</Button>
+          </div>
+          
+          {/* Mobile hamburger menu */}
+          <div className="md:hidden">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <Menu className="h-4 w-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-64">
+                <div className="flex flex-col gap-4 mt-8">
+                  <Button variant="outline" asChild className="w-full justify-start">
+                    <Link to="/quiz-attempts">
+                      <ClipboardList className="h-4 w-4 mr-2" />
+                      Quiz History
+                    </Link>
+                  </Button>
+                  <Button variant="outline" onClick={logout} className="w-full">
+                    Sign Out
+                  </Button>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </div>
       
