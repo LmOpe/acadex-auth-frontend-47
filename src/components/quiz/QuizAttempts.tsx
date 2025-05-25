@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { AlertCircle, Eye, Users, ArrowUpDown, Filter } from 'lucide-react';
+import { AlertCircle, Eye, Users, ArrowUpDown, Filter, HelpCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import quizService, { QuizAttemptStudent } from '@/services/quizService';
 import StudentResultDialog from './StudentResultDialog';
@@ -172,15 +172,15 @@ const QuizAttempts = ({ quizId }: QuizAttemptsProps) => {
         </CardHeader>
         <CardContent>
           {attempts.length === 0 ? (
-            <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8">
-              <div className="text-center">
-                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <Card className="border-dashed border-2 bg-muted/50">
+              <CardContent className="pt-6 pb-6 flex flex-col items-center justify-center">
+                <HelpCircle className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-medium mb-2">No Attempts Yet</h3>
-                <p className="text-muted-foreground">
-                  No students have attempted this quiz yet.
+                <p className="text-sm text-muted-foreground text-center max-w-md">
+                  No students have attempted this quiz yet. Student attempts will appear here once they start taking the quiz.
                 </p>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           ) : (
             <>
               {/* Filter and Sort Controls */}

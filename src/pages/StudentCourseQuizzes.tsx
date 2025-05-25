@@ -1,10 +1,12 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, ArrowLeft, Clock, Calendar, Filter, ArrowUpDown } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Clock, Calendar, Filter, ArrowUpDown, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -34,7 +36,8 @@ const StudentCourseQuizzes = () => {
   const [attemptError, setAttemptError] = useState<string | null>(null);
   const [attemptingQuizId, setAttemptingQuizId] = useState<string | null>(null);
 
-  // Filter and sort states
+  // Search, filter and sort states
+  const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('start_date_time');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -76,9 +79,17 @@ const StudentCourseQuizzes = () => {
     fetchData();
   }, [courseId]);
 
-  // Apply filtering and sorting
+  // Apply search, filtering and sorting
   useEffect(() => {
     let filtered = [...quizzes];
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      filtered = filtered.filter(quiz =>
+        quiz.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        quiz.instructions.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
 
     // Apply status filter
     if (statusFilter !== 'all') {
@@ -134,7 +145,7 @@ const StudentCourseQuizzes = () => {
     });
 
     setFilteredQuizzes(filtered);
-  }, [quizzes, attemptedQuizIds, sortField, sortOrder, statusFilter]);
+  }, [quizzes, attemptedQuizIds, searchQuery, sortField, sortOrder, statusFilter]);
 
   const handleGoBack = () => {
     navigate(-1);
@@ -239,8 +250,18 @@ const StudentCourseQuizzes = () => {
         </Card>
       ) : (
         <>
-          {/* Filter and Sort Controls */}
-          <div className="flex gap-4 mb-6">
+          {/* Search, Filter and Sort Controls */}
+          <div className="flex gap-4 mb-6 flex-wrap">
+            <div className="flex items-center gap-2 flex-1 min-w-60">
+              <Search className="h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search quizzes..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1"
+              />
+            </div>
+            
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-muted-foreground" />
               <Select value={statusFilter} onValueChange={(value: StatusFilter) => setStatusFilter(value)}>
@@ -281,65 +302,77 @@ const StudentCourseQuizzes = () => {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
-            {filteredQuizzes.map((quiz) => {
-              const isActive = quizService.isQuizActive(quiz);
-              const hasStarted = new Date() >= new Date(quiz.start_date_time);
-              const hasEnded = new Date() > new Date(quiz.end_date_time);
-              const isAttempted = attemptedQuizIds.has(quiz.id);
-              
-              return (
-                <Card key={quiz.id} className={isAttempted ? "opacity-70" : ""}>
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-lg font-medium">{quiz.title}</CardTitle>
-                      <div className="flex gap-2">
-                        {isAttempted && (
-                          <Badge variant="outline">Attempted</Badge>
-                        )}
-                        <Badge variant={isActive ? "default" : "outline"}>
-                          {isActive ? 'Active' : hasEnded ? 'Ended' : hasStarted ? 'Starting Soon' : 'Upcoming'}
-                        </Badge>
+          {filteredQuizzes.length === 0 ? (
+            <Card className="border-dashed border-2 bg-muted/50">
+              <CardContent className="pt-6 pb-6 flex flex-col items-center justify-center">
+                <Clock className="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium mb-2">No Quizzes Found</h3>
+                <p className="text-sm text-muted-foreground text-center max-w-md">
+                  No quizzes match your search and filter criteria. Try adjusting your search terms or filters.
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid md:grid-cols-2 gap-4">
+              {filteredQuizzes.map((quiz) => {
+                const isActive = quizService.isQuizActive(quiz);
+                const hasStarted = new Date() >= new Date(quiz.start_date_time);
+                const hasEnded = new Date() > new Date(quiz.end_date_time);
+                const isAttempted = attemptedQuizIds.has(quiz.id);
+                
+                return (
+                  <Card key={quiz.id} className={isAttempted ? "opacity-70" : ""}>
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <CardTitle className="text-lg font-medium">{quiz.title}</CardTitle>
+                        <div className="flex gap-2">
+                          {isAttempted && (
+                            <Badge variant="outline">Attempted</Badge>
+                          )}
+                          <Badge variant={isActive ? "default" : "outline"}>
+                            {isActive ? 'Active' : hasEnded ? 'Ended' : hasStarted ? 'Starting Soon' : 'Upcoming'}
+                          </Badge>
+                        </div>
                       </div>
-                    </div>
-                    <CardDescription>
-                      {quiz.number_of_questions} questions · {quiz.allotted_time} duration
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3 text-sm">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <div className="flex flex-col">
-                        <span>Start: {quizService.formatDateTime(quiz.start_date_time)}</span>
-                        <span>End: {quizService.formatDateTime(quiz.end_date_time)}</span>
+                      <CardDescription>
+                        {quiz.number_of_questions} questions · {quiz.allotted_time} duration
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <div className="flex flex-col">
+                          <span>Start: {quizService.formatDateTime(quiz.start_date_time)}</span>
+                          <span>End: {quizService.formatDateTime(quiz.end_date_time)}</span>
+                        </div>
                       </div>
-                    </div>
-                    <p className="text-muted-foreground line-clamp-2">{quiz.instructions}</p>
-                  </CardContent>
-                  <CardFooter>
-                    <Button 
-                      className="w-full" 
-                      disabled={!isActive || isAttempted || attemptingQuizId === quiz.id}
-                      onClick={() => isActive && !isAttempted && handleAttemptQuiz(quiz)}
-                    >
-                      {attemptingQuizId === quiz.id
-                        ? "Loading..."
-                        : isAttempted 
-                          ? "Already Attempted" 
-                          : isActive 
-                            ? "Attempt Quiz"
-                            : hasEnded 
-                              ? 'Quiz Ended' 
-                              : hasStarted 
-                                ? 'Not Available' 
-                                : 'Not Started Yet'
-                      }
-                    </Button>
-                  </CardFooter>
-                </Card>
-              );
-            })}
-          </div>
+                      <p className="text-muted-foreground line-clamp-2">{quiz.instructions}</p>
+                    </CardContent>
+                    <CardFooter>
+                      <Button 
+                        className="w-full" 
+                        disabled={!isActive || isAttempted || attemptingQuizId === quiz.id}
+                        onClick={() => isActive && !isAttempted && handleAttemptQuiz(quiz)}
+                      >
+                        {attemptingQuizId === quiz.id
+                          ? "Loading..."
+                          : isAttempted 
+                            ? "Already Attempted" 
+                            : isActive 
+                              ? "Attempt Quiz"
+                              : hasEnded 
+                                ? 'Quiz Ended' 
+                                : hasStarted 
+                                  ? 'Not Available' 
+                                  : 'Not Started Yet'
+                        }
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
         </>
       )}
     </div>
