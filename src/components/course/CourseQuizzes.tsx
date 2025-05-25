@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -20,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { AlertCircle, Calendar, Clock, List, Filter, ArrowUpDown } from 'lucide-react';
+import { AlertCircle, Calendar, Clock, List, Filter, ArrowUpDown, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import EditQuizDialog from '@/components/quiz/EditQuizDialog';
 
@@ -40,10 +41,11 @@ const CourseQuizzes = ({ courseId }: CourseQuizzesProps) => {
   const location = useLocation();
   const course = location.state?.course;
 
-  // Filter and sort states
+  // Filter, sort, and search states
   const [sortField, setSortField] = useState<SortField>('created_at');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const fetchQuizzes = async () => {
@@ -63,9 +65,18 @@ const CourseQuizzes = ({ courseId }: CourseQuizzesProps) => {
     fetchQuizzes();
   }, [courseId]);
 
-  // Apply filtering and sorting
+  // Apply filtering, sorting, and searching
   useEffect(() => {
     let filtered = [...quizzes];
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(quiz => 
+        quiz.title.toLowerCase().includes(query) ||
+        (quiz.instructions && quiz.instructions.toLowerCase().includes(query))
+      );
+    }
 
     // Apply status filter
     if (statusFilter !== 'all') {
@@ -105,7 +116,7 @@ const CourseQuizzes = ({ courseId }: CourseQuizzesProps) => {
     });
 
     setFilteredQuizzes(filtered);
-  }, [quizzes, sortField, sortOrder, statusFilter]);
+  }, [quizzes, sortField, sortOrder, statusFilter, searchQuery]);
 
   const handleQuizUpdate = async () => {
     try {
@@ -139,8 +150,18 @@ const CourseQuizzes = ({ courseId }: CourseQuizzesProps) => {
         <h2 className="text-xl font-semibold">Course Quizzes</h2>
       </div>
 
-      {/* Filter and Sort Controls */}
+      {/* Search, Filter and Sort Controls */}
       <div className="flex gap-4 flex-wrap">
+        <div className="flex items-center gap-2 flex-1 min-w-64">
+          <Search className="h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search quizzes by title or instructions..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="max-w-sm"
+          />
+        </div>
+        
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-muted-foreground" />
           <Select value={statusFilter} onValueChange={(value: StatusFilter) => setStatusFilter(value)}>
@@ -185,7 +206,9 @@ const CourseQuizzes = ({ courseId }: CourseQuizzesProps) => {
             <List className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium mb-2">No Quizzes Found</h3>
             <p className="text-sm text-muted-foreground text-center max-w-md">
-              {statusFilter !== 'all' 
+              {searchQuery.trim() 
+                ? `No quizzes match "${searchQuery}".` 
+                : statusFilter !== 'all' 
                 ? `No ${statusFilter} quizzes found for this course.` 
                 : 'No quizzes have been created for this course yet.'}
             </p>
