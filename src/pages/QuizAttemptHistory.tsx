@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -104,6 +103,7 @@ const QuizAttemptHistory = () => {
   }, [attempts, sortField, sortOrder, statusFilter]);
 
   const handleGoBack = () => {
+    // Use browser's back functionality to go to the actual previous page
     navigate(-1);
   };
 
@@ -111,8 +111,7 @@ const QuizAttemptHistory = () => {
     navigate(`/quizzes/${attempt.quiz_id}/result`, {
       state: {
         result: null, // This will be fetched in the result page
-        quizTitle: attempt.title,
-        returnPath: "/quiz-attempts"
+        quizTitle: attempt.title
       }
     });
   };

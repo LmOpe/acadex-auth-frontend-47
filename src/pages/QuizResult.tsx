@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,7 +17,6 @@ const QuizResult = () => {
     location.state?.result || null
   );
   const quizTitle = location.state?.quizTitle || 'Quiz';
-  const returnPath = location.state?.returnPath || '/dashboard';
   
   const [loading, setLoading] = useState(!location.state?.result);
   const [error, setError] = useState<string | null>(null);
@@ -55,7 +53,8 @@ const QuizResult = () => {
   }, [quizId, rawResult]);
   
   const handleGoBack = () => {
-    navigate(returnPath);
+    // Use browser's back functionality to go to the actual previous page
+    navigate(-1);
   };
 
   if (loading) {

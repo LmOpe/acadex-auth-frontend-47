@@ -1,10 +1,41 @@
 
 import * as React from "react"
 import * as TabsPrimitive from "@radix-ui/react-tabs"
+import { useSearchParams } from "react-router-dom"
 
 import { cn } from "@/lib/utils"
 
-const Tabs = TabsPrimitive.Root
+const Tabs = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Root> & {
+    persistKey?: string;
+  }
+>(({ className, persistKey, defaultValue, onValueChange, ...props }, ref) => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // Get the current tab from URL params if persistKey is provided
+  const currentTab = persistKey ? searchParams.get(persistKey) || defaultValue : defaultValue;
+  
+  const handleValueChange = (value: string) => {
+    if (persistKey) {
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.set(persistKey, value);
+      setSearchParams(newSearchParams, { replace: true });
+    }
+    onValueChange?.(value);
+  };
+
+  return (
+    <TabsPrimitive.Root
+      ref={ref}
+      className={cn("w-full", className)}
+      value={currentTab}
+      onValueChange={handleValueChange}
+      {...props}
+    />
+  );
+});
+Tabs.displayName = TabsPrimitive.Root.displayName
 
 const TabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,

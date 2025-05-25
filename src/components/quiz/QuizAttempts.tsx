@@ -279,7 +279,15 @@ const QuizAttempts = ({ quizId }: QuizAttemptsProps) => {
                             View Result
                           </Button>
                         ) : (
-                          <span className="text-muted-foreground text-sm">No result available</span>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            disabled
+                            className="opacity-50 cursor-not-allowed"
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            View Result
+                          </Button>
                         )}
                       </TableCell>
                     </TableRow>
