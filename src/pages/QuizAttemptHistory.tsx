@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -253,13 +254,24 @@ const QuizAttemptHistory = () => {
                     )}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => handleViewResult(attempt)}
-                    >
-                      View Result
-                    </Button>
+                    {attempt.submitted ? (
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleViewResult(attempt)}
+                      >
+                        View Result
+                      </Button>
+                    ) : (
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        disabled
+                        className="opacity-50 cursor-not-allowed"
+                      >
+                        View Result
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
