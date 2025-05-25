@@ -58,12 +58,21 @@ const Login = () => {
         </CardHeader>
         
         <CardContent>
-          {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+          {/* Reserve space for error message to prevent layout shift */}
+          <div className="mb-4 min-h-[60px]">
+            <div className={`transition-all duration-300 ease-in-out ${
+              error 
+                ? 'opacity-100 transform translate-y-0' 
+                : 'opacity-0 transform -translate-y-2 pointer-events-none'
+            }`}>
+              {error && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+            </div>
+          </div>
           
           <form onSubmit={handleSubmit}>
             <div className="space-y-4">
