@@ -46,7 +46,7 @@ const Login = () => {
   
   return (
     <div className="auth-container">
-      <div className="mb-8 text-center">
+      <div className="mb-4 text-center">
         <h1 className="text-4xl font-bold text-acadex-primary">AcadEx</h1>
         <p className="text-muted-foreground">Academic Excellence Platform</p>
       </div>
@@ -58,21 +58,12 @@ const Login = () => {
         </CardHeader>
         
         <CardContent>
-          {/* Reserve space for error message to prevent layout shift */}
-          <div className="mb-4 min-h-[60px]">
-            <div className={`transition-all duration-300 ease-in-out ${
-              error 
-                ? 'opacity-100 transform translate-y-0' 
-                : 'opacity-0 transform -translate-y-2 pointer-events-none'
-            }`}>
-              {error && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-            </div>
-          </div>
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
           
           <form onSubmit={handleSubmit}>
             <div className="space-y-4">

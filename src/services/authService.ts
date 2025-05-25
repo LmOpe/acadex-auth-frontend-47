@@ -1,4 +1,3 @@
-
 import axios from 'axios';
 
 const BASE_URL = 'https://acadex.run.place';
@@ -28,6 +27,11 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     
+    // Skip token refresh for login requests - let the login component handle the error
+    if (originalRequest.url?.includes('/api/auth/token/') && !originalRequest.url?.includes('/refresh/')) {
+      return Promise.reject(error);
+    }
+    
     // If error is 401 and we haven't tried to refresh the token yet
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
@@ -35,11 +39,17 @@ api.interceptors.response.use(
       try {
         const refreshToken = localStorage.getItem('refreshToken');
         if (!refreshToken) {
-          // No refresh token available, logout user
+          // No refresh token available, clear storage but don't force redirect
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
           localStorage.removeItem('user');
-          window.location.href = '/login';
+          
+          // Let React Router handle navigation instead of forcing reload
+          // Only redirect if we're not already on login page
+          if (!window.location.pathname.includes('/login')) {
+            // Use a more gentle navigation approach
+            window.dispatchEvent(new CustomEvent('auth-logout'));
+          }
           return Promise.reject(error);
         }
         
@@ -58,11 +68,16 @@ api.interceptors.response.use(
           return api(originalRequest);
         }
       } catch (refreshError) {
-        // Refresh token expired or invalid
+        // Refresh token expired or invalid, clear storage
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
-        window.location.href = '/login';
+        
+        // Let React Router handle navigation instead of forcing reload
+        // Only redirect if we're not already on login page
+        if (!window.location.pathname.includes('/login')) {
+          window.dispatchEvent(new CustomEvent('auth-logout'));
+        }
         return Promise.reject(refreshError);
       }
     }
