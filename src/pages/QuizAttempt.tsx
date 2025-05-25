@@ -140,6 +140,7 @@ const QuizAttemptPage = () => {
       // Navigate to result page
       navigate(`/quizzes/${quizId}/result`, { 
         state: { 
+          from: location.pathname,
           result: response,
           quizTitle: quiz?.title || "Quiz",
           returnPath: returnPath

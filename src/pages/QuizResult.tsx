@@ -53,9 +53,18 @@ const QuizResult = () => {
   }, [quizId, rawResult]);
   
   const handleGoBack = () => {
-    // Use browser's back functionality to go to the actual previous page
-    navigate(-1);
+    // Check if location.state?.from is set and matches the attempt route pattern
+    const fromPath: string | undefined = location.state?.from;
+
+    if (fromPath && new RegExp(`^/quizzes/${quizId}/attempt$`).test(fromPath)) {
+      // If user came from the quiz attempt page, redirect to dashboard
+      navigate('/dashboard');
+    } else {
+      // Otherwise, go back one step in history
+      navigate(-1);
+    }
   };
+
 
   if (loading) {
     return (
