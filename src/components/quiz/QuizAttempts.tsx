@@ -120,8 +120,8 @@ const QuizAttempts = ({ quizId }: QuizAttemptsProps) => {
     }
   };
 
-  const handleViewResult = (studentMatric: string) => {
-    setSelectedStudent(studentMatric);
+  const handleViewResult = (student: string) => {
+    setSelectedStudent(student);
   };
 
   if (loading) {
@@ -273,7 +273,7 @@ const QuizAttempts = ({ quizId }: QuizAttemptsProps) => {
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => handleViewResult(attempt.student.split(' - ')[1])}
+                            onClick={() => handleViewResult(attempt.student)}
                           >
                             <Eye className="h-4 w-4 mr-1" />
                             View Result
@@ -302,7 +302,7 @@ const QuizAttempts = ({ quizId }: QuizAttemptsProps) => {
       {selectedStudent && (
         <StudentResultDialog
           quizId={quizId}
-          studentMatric={selectedStudent}
+          student={selectedStudent}
           isOpen={!!selectedStudent}
           onClose={() => setSelectedStudent(null)}
         />

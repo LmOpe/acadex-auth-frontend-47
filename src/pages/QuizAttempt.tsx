@@ -233,7 +233,7 @@ const QuizAttemptPage = () => {
 
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle className="text-xl">Question {currentQuestionIndex + 1}</CardTitle>
+          <CardTitle className="text-lg">Question {currentQuestionIndex + 1}</CardTitle>
           <CardDescription>{currentQuestion.text}</CardDescription>
         </CardHeader>
         <CardContent>

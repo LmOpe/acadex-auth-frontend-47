@@ -15,23 +15,23 @@ import quizService, { StudentQuizResult } from '@/services/quizService';
 
 interface StudentResultDialogProps {
   quizId: string;
-  studentMatric: string;
+  student: string;
   isOpen: boolean;
   onClose: () => void;
 }
 
-const StudentResultDialog = ({ quizId, studentMatric, isOpen, onClose }: StudentResultDialogProps) => {
+const StudentResultDialog = ({ quizId, student, isOpen, onClose }: StudentResultDialogProps) => {
   const [result, setResult] = useState<StudentQuizResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isOpen && studentMatric) {
+    if (isOpen && student) {
       const fetchResult = async () => {
         try {
           setLoading(true);
           setError(null);
-          const data = await quizService.getStudentQuizResult(quizId, studentMatric);
+          const data = await quizService.getStudentQuizResult(quizId, student.split(" - ")[1]);
           setResult(data);
         } catch (err: any) {
           console.error('Error fetching student result:', err);
@@ -43,7 +43,7 @@ const StudentResultDialog = ({ quizId, studentMatric, isOpen, onClose }: Student
 
       fetchResult();
     }
-  }, [isOpen, quizId, studentMatric]);
+  }, [isOpen, quizId, student]);
 
   const getAnswerIcon = (answer: StudentQuizResult['answers'][0]) => {
     if (answer.selected_option === null) {
@@ -67,7 +67,7 @@ const StudentResultDialog = ({ quizId, studentMatric, isOpen, onClose }: Student
         <DialogHeader>
           <DialogTitle>Student Quiz Result</DialogTitle>
           <DialogDescription>
-            Detailed result for student: {studentMatric}
+            Detailed result for student: {student}
           </DialogDescription>
         </DialogHeader>
 
