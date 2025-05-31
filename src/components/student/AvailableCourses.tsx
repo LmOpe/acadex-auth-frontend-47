@@ -1,10 +1,5 @@
-
 import { useState, useEffect } from 'react';
-import { Search, ArrowUpDown } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Search, ArrowUpDown, BookOpen, AlertCircle } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -12,7 +7,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { AlertCircle, BookOpen } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/sonner';
 import courseService, { Course, CourseEnrollment } from '@/services/courseService';
 
@@ -25,78 +23,50 @@ type SortField = 'title' | 'course_code' | 'instructor_name';
 type SortOrder = 'asc' | 'desc';
 
 const AvailableCourses = ({ enrolledCourses, onEnrollmentSuccess }: AvailableCoursesProps) => {
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [allCourses, setAllCourses] = useState<Course[]>([]);
   const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [enrollingCourseId, setEnrollingCourseId] = useState<string | null>(null);
-  const [searchSubmitted, setSearchSubmitted] = useState(false);
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
-  
-  // Sort states
+
   const [sortField, setSortField] = useState<SortField>('title');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
 
-  // Set of enrolled course IDs for efficient filtering
   const enrolledCourseIds = new Set(enrolledCourses.map(enrollment => enrollment.course));
 
   useEffect(() => {
-    // Only fetch courses when component mounts or search is submitted
-    if (!searchSubmitted && initialLoadComplete) {
-      return;
-    }
-
     const fetchCourses = async () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await courseService.getAllCourses(searchQuery);
-        
-        // Filter out courses that the student is already enrolled in
-        const availableCourses = data.filter(
-          course => !enrolledCourseIds.has(course.course_id)
-        );
-        
-        setCourses(availableCourses);
-        setFilteredCourses(availableCourses);
-        setSearchSubmitted(false);
-        setInitialLoadComplete(true);
+        const data = await courseService.getAllCourses('');
+        setAllCourses(data);
       } catch (err: any) {
         console.error('Fetch courses error:', err);
         setError(err.response?.data?.detail || 'Failed to fetch available courses');
-        setInitialLoadComplete(true);
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchCourses();
-  }, [searchSubmitted, enrolledCourseIds]);
+  }, []);
 
-  // Add this effect to re-filter courses when enrolledCourses prop changes
   useEffect(() => {
-    if (courses.length > 0) {
-      // Create updated set of enrolled course IDs
-      const updatedEnrolledCourseIds = new Set(enrolledCourses.map(enrollment => enrollment.course));
-      
-      // Re-filter the available courses
-      const availableCourses = courses.filter(
-        course => !updatedEnrolledCourseIds.has(course.course_id)
+    let available = allCourses.filter(course => !enrolledCourseIds.has(course.course_id));
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      available = available.filter(course =>
+        course.title.toLowerCase().includes(q) ||
+        course.course_code.toLowerCase().includes(q) ||
+        course.instructor_name.toLowerCase().includes(q)
       );
-      
-      setCourses(availableCourses);
     }
-  }, [enrolledCourses, courses]);
 
-  // Apply sorting to filtered courses
-  useEffect(() => {
-    let sorted = [...courses];
-
-    // Apply sorting
-    sorted.sort((a, b) => {
+    available.sort((a, b) => {
       let aValue: any, bValue: any;
-
       switch (sortField) {
         case 'title':
           aValue = a.title.toLowerCase();
@@ -119,13 +89,8 @@ const AvailableCourses = ({ enrolledCourses, onEnrollmentSuccess }: AvailableCou
       return 0;
     });
 
-    setFilteredCourses(sorted);
-  }, [courses, sortField, sortOrder]);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSearchSubmitted(true);
-  };
+    setFilteredCourses(available);
+  }, [allCourses, searchQuery, sortField, sortOrder, enrolledCourses]);
 
   const handleEnroll = async (courseId: string) => {
     try {
@@ -135,16 +100,13 @@ const AvailableCourses = ({ enrolledCourses, onEnrollmentSuccess }: AvailableCou
       onEnrollmentSuccess();
     } catch (err: any) {
       console.error('Enrollment error:', err);
-      const errorMessage = err.response?.data?.detail || 
-                           err.response?.data?.message || 
-                           'Failed to enroll in course';
-      toast.error(errorMessage);
+      toast.error(err.response?.data?.detail || 'Failed to enroll in course');
     } finally {
       setEnrollingCourseId(null);
     }
   };
 
-  if (loading && !initialLoadComplete) {
+  if (loading) {
     return (
       <div className="flex justify-center my-8">
         <div className="animate-pulse text-acadex-primary">Loading available courses...</div>
@@ -163,21 +125,17 @@ const AvailableCourses = ({ enrolledCourses, onEnrollmentSuccess }: AvailableCou
 
   return (
     <div className="space-y-4">
-      <form onSubmit={handleSearch} className="flex gap-2">
-        <Input
-          placeholder="Search courses by title, code or instructor..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-1"
-        />
-        <Button type="submit" variant="secondary">
-          <Search className="h-4 w-4 mr-2" />
-          Search
-        </Button>
-      </form>
+      <div className="flex gap-4 flex-wrap">
+        <div className="flex items-center gap-2 flex-1 min-w-60">
+          <Search className="h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search courses by title, code, or instructor..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex-1"
+          />
+        </div>
 
-      {/* Sort Controls */}
-      {filteredCourses.length > 0 && (
         <div className="flex items-center gap-2">
           <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
           <Select value={`${sortField}-${sortOrder}`} onValueChange={(value) => {
@@ -198,7 +156,7 @@ const AvailableCourses = ({ enrolledCourses, onEnrollmentSuccess }: AvailableCou
             </SelectContent>
           </Select>
         </div>
-      )}
+      </div>
 
       {filteredCourses.length === 0 ? (
         <Card className="border-dashed border-2 bg-muted/50">
@@ -206,9 +164,7 @@ const AvailableCourses = ({ enrolledCourses, onEnrollmentSuccess }: AvailableCou
             <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium mb-2">No Available Courses</h3>
             <p className="text-sm text-muted-foreground text-center max-w-md">
-              {searchQuery 
-                ? "No courses match your search criteria. Try different keywords."
-                : "There are no available courses for enrollment at the moment."}
+              No courses match your search or you're already enrolled in all available courses.
             </p>
           </CardContent>
         </Card>
@@ -217,23 +173,19 @@ const AvailableCourses = ({ enrolledCourses, onEnrollmentSuccess }: AvailableCou
           {filteredCourses.map(course => (
             <Card key={course.course_id} className="h-full flex flex-col">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold">{course.title}</CardTitle>
-                <p className="text-sm font-mono text-muted-foreground">{course.course_code}</p>
+                <CardTitle className="text-lg font-medium">{course.title}</CardTitle>
               </CardHeader>
-              <CardContent className="flex-grow">
-                <p className="text-sm text-muted-foreground mb-2">{course.description || "No description available"}</p>
-                <p className="text-sm">
-                  <span className="text-muted-foreground">Instructor: </span>
-                  {course.instructor_name}
-                </p>
+              <CardContent className="flex-grow space-y-2 text-sm">
+                <div>Code: {course.course_code}</div>
+                <div>Instructor: {course.instructor_name}</div>
               </CardContent>
               <CardFooter>
-                <Button 
-                  className="w-full" 
+                <Button
+                  className="w-full"
                   onClick={() => handleEnroll(course.course_id)}
-                  disabled={!!enrollingCourseId}
+                  disabled={enrollingCourseId === course.course_id}
                 >
-                  {enrollingCourseId === course.course_id ? "Enrolling..." : "Enroll"}
+                  {enrollingCourseId === course.course_id ? 'Enrolling...' : 'Enroll'}
                 </Button>
               </CardFooter>
             </Card>

@@ -240,7 +240,7 @@ const quizService = {
   
   // Get specific student's quiz result (for lecturers)
   getStudentQuizResult: async (quizId: string, studentMatric: string): Promise<StudentQuizResult> => {
-    const response = await api.get(`/api/quizzes/results/${quizId}/${studentMatric}/`);
+    const response = await api.get(`/api/quizzes/results/${quizId}/?matric-number=${studentMatric}`);
     return response.data;
   }
 };
