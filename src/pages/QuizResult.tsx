@@ -68,10 +68,10 @@ const QuizResult = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-6 md:px-10 py-8">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-acadex-primary">{quizTitle} Results</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-acadex-primary">{quizTitle} Results</h1>
           </div>
           <Button variant="outline" onClick={handleGoBack}>
             <ArrowLeft className="mr-2 h-4 w-4" /> Back
@@ -86,10 +86,10 @@ const QuizResult = () => {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-6 md:px-10 py-8">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-acadex-primary">{quizTitle} Results</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-acadex-primary">{quizTitle} Results</h1>
           </div>
           <Button variant="outline" onClick={handleGoBack}>
             <ArrowLeft className="mr-2 h-4 w-4" /> Back
@@ -105,10 +105,10 @@ const QuizResult = () => {
   
   if (!normalizedResult) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-6 md:px-10 py-8">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-acadex-primary">{quizTitle} Results</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-acadex-primary">{quizTitle} Results</h1>
           </div>
           <Button variant="outline" onClick={handleGoBack}>
             <ArrowLeft className="mr-2 h-4 w-4" /> Back
@@ -129,10 +129,10 @@ const QuizResult = () => {
   const scorePercentage = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
   
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
+    <div className="container mx-auto px-6 md:px-10 py-8">
+      <div className="flex justify-between items-start mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-acadex-primary">{quizTitle} Results</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-acadex-primary">{quizTitle} Results</h1>
           <p className="text-muted-foreground">Your quiz has been submitted successfully</p>
         </div>
         <Button variant="outline" onClick={handleGoBack}>
@@ -142,7 +142,7 @@ const QuizResult = () => {
       
       <Card className="mb-8">
         <CardHeader className="text-center border-b pb-6">
-          <CardTitle className="text-2xl">
+          <CardTitle className="text-xl md:text-2xl">
             Your Score: {scorePercentage}%
           </CardTitle>
           <p className="text-muted-foreground">
@@ -152,7 +152,7 @@ const QuizResult = () => {
       </Card>
       
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Answers Review</h2>
+        <h2 className="text-lg md:text-xl font-semibold">Answers Review</h2>
         
         {answers.length > 0 ? (
           answers.map((answer, index) => (

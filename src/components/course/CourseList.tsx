@@ -80,8 +80,8 @@ const CourseList = ({
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div>
-                  <CardTitle className="text-lg font-medium">{course.title}</CardTitle>
-                  <CardDescription className="font-mono text-sm">{course.course_code}</CardDescription>
+                  <CardTitle className="text-lg font-medium capitalize">{course.title}</CardTitle>
+                  <CardDescription className="font-mono text-sm uppercase">{course.course_code}</CardDescription>
                 </div>
                 <BookOpen className="h-5 w-5 text-acadex-secondary" />
               </div>

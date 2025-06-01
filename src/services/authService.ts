@@ -2,6 +2,7 @@ import axios from 'axios';
 
 const BASE_URL = 'https://acadex.run.place';
 
+
 const api = axios.create({
   baseURL: BASE_URL,
   headers: {

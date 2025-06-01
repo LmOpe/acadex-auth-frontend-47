@@ -167,7 +167,7 @@ const EnrolledCourses = ({ refreshTrigger }: EnrolledCoursesProps) => {
           {filteredEnrollments.map(enrollment => (
             <Card key={enrollment.enrollment_id} className="h-full flex flex-col">
               <CardHeader>
-                <CardTitle className="text-lg font-medium">{enrollment.course_title}</CardTitle>
+                <CardTitle className="text-lg font-medium capitalize">{enrollment.course_title}</CardTitle>
               </CardHeader>
               <CardContent className="flex-grow space-y-2">
                 <div className="flex items-center text-sm">

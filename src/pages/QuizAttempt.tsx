@@ -213,8 +213,8 @@ const QuizAttemptPage = () => {
   const answeredQuestions = selectedAnswers.size;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
+    <div className="container mx-auto px-6 md:px-10 py-8 font-semibold">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold text-acadex-primary">{quiz?.title || "Quiz"}</h1>
           <p className="text-muted-foreground">
@@ -232,9 +232,9 @@ const QuizAttemptPage = () => {
       </div>
 
       <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-xl">Question {currentQuestionIndex + 1}</CardTitle>
-          <CardDescription>{currentQuestion.text}</CardDescription>
+        <CardHeader className='flex flex-col gap-6'>
+          <CardTitle className="text-2xl">Question {currentQuestionIndex + 1}</CardTitle>
+          <CardDescription className='text-xl'>{currentQuestion.text}</CardDescription>
         </CardHeader>
         <CardContent>
           <RadioGroup 

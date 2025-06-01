@@ -217,11 +217,11 @@ const AvailableCourses = ({ enrolledCourses, onEnrollmentSuccess }: AvailableCou
           {filteredCourses.map(course => (
             <Card key={course.course_id} className="h-full flex flex-col">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold">{course.title}</CardTitle>
-                <p className="text-sm font-mono text-muted-foreground">{course.course_code}</p>
+                <CardTitle className="text-lg font-semibold capitalize">{course.title}</CardTitle>
+                <p className="text-sm font-mono text-muted-foreground uppercase">{course.course_code}</p>
               </CardHeader>
               <CardContent className="flex-grow">
-                <p className="text-sm text-muted-foreground mb-2">{course.description || "No description available"}</p>
+                <p className="text-sm text-muted-foreground mb-2 capitalize">{course.description || "No description available"}</p>
                 <p className="text-sm">
                   <span className="text-muted-foreground">Instructor: </span>
                   {course.instructor_name}
