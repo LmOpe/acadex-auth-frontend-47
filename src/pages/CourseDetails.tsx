@@ -47,69 +47,80 @@ const CourseDetails = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-6">
-        <div className="flex items-center mb-4">
-          <Button asChild variant="ghost" className="mr-2">
-            <Link to="/dashboard">
-              <ArrowLeft className="h-4 w-4 mr-1" />
+    <div className='container mx-auto md:px-10 px-6 py-8 font-semibold'>
+      <div className='mb-6'>
+        <div className='flex items-center mb-4 gap-4'>
+          <Button asChild variant='ghost' className='mr-2 bg-gray-300'>
+            <Link to='/dashboard'>
+              <ArrowLeft className='h-4 w-4' />
               Back
             </Link>
           </Button>
-          <h1 className="text-3xl font-bold text-acadex-primary">{course.title}</h1>
+          <h1 className=' text-xl md:text-3xl font-bold text-acadex-primary uppercase'>
+            {course.title}
+          </h1>
         </div>
-        <div className="text-muted-foreground font-mono">{course.course_code}</div>
+        <div className='text-muted-foreground font-mono uppercase'>
+          {course.course_code}
+        </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-4 mb-8">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="quizzes">Quizzes</TabsTrigger>
-          <TabsTrigger value="create-quiz">Create Quiz</TabsTrigger>
-          <TabsTrigger value="students">Students</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
+        <TabsList className='grid grid-cols-4 mb-8'>
+          <TabsTrigger value='overview'>Overview</TabsTrigger>
+          <TabsTrigger value='quizzes'>Quizzes</TabsTrigger>
+          <TabsTrigger value='create-quiz'>Create Quiz</TabsTrigger>
+          <TabsTrigger value='students'>Students</TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="overview">
+
+        <TabsContent value='overview'>
           <Card>
-            <CardHeader>
-              <CardTitle>Course Details</CardTitle>
-              <CardDescription>Information about this course</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-medium mb-2">Description</h3>
-                  <p>{course.description || 'No description provided.'}</p>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
+            <div className='flex flex-col md:gap-4'>
+              <CardHeader>
+                <CardTitle>Course Details</CardTitle>
+                <CardDescription>Information about this course</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className='space-y-4'>
                   <div>
-                    <h3 className="font-medium mb-2">Instructor</h3>
-                    <p>{course.instructor_name}</p>
+                    <h3 className='font-medium mb-2 '>Description</h3>
+                    <p className='capitalize'>
+                      {course.description || 'No description provided.'}
+                    </p>
                   </div>
-                  <div>
-                    <h3 className="font-medium mb-2">Created</h3>
-                    <p>{new Date(course.created_at).toLocaleDateString()}</p>
+                  <div className='grid grid-cols-2 gap-4'>
+                    <div>
+                      <h3 className='font-medium mb-2'>Instructor</h3>
+                      <p>{course.instructor_name}</p>
+                    </div>
+                    <div>
+                      <h3 className='font-medium mb-2'>Created</h3>
+                      <p>{new Date(course.created_at).toLocaleDateString()}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </CardContent>
+              </CardContent>
+            </div>
           </Card>
         </TabsContent>
-        
-        <TabsContent value="quizzes">
+
+        <TabsContent value='quizzes'>
           <CourseQuizzes courseId={courseId || ''} />
         </TabsContent>
-        
-        <TabsContent value="create-quiz">
-          <CreateQuizForm courseId={courseId || ''} onSuccess={() => setActiveTab("quizzes")} />
+
+        <TabsContent value='create-quiz'>
+          <CreateQuizForm
+            courseId={courseId || ''}
+            onSuccess={() => setActiveTab('quizzes')}
+          />
         </TabsContent>
-        
-        <TabsContent value="students">
+
+        <TabsContent value='students'>
           <CourseEnrollments courseId={courseId || ''} />
         </TabsContent>
       </Tabs>
     </div>
-  );
+  )
 };
 
 export default CourseDetails;

@@ -59,67 +59,93 @@ const QuizDetails = () => {
   const isLecturer = user?.role?.toUpperCase() === 'LECTURER';
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-6">
-        <div className="flex items-center mb-4">
-          <Button variant="ghost" className="mr-2" onClick={navigateBackToCourse}>
-            <ArrowLeft className="h-4 w-4 mr-1" />
+    <div className='container mx-auto px-6 md:px-10 py-8 font-semibold'>
+      <div className='mb-6'>
+        <div className='flex items-start gap-4 mb-4'>
+          <Button
+            variant='ghost'
+            className='mr-2 bg-gray-300'
+            onClick={navigateBackToCourse}
+          >
+            <ArrowLeft className='h-4 w-4 mr-1' />
             Back to Course
           </Button>
-          <h1 className="text-3xl font-bold text-acadex-primary">{quiz.title}</h1>
+          <h1 className='text-3xl font-bold text-acadex-primary'>
+            {quiz.title}
+          </h1>
         </div>
-        <div className="text-muted-foreground">Quiz ID: {quiz.id}</div>
+        <div className='text-muted-foreground'>Quiz ID: {quiz.id}</div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className={`grid ${isLecturer ? 'grid-cols-4' : 'grid-cols-3'} mb-8`}>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="questions">Quiz Questions</TabsTrigger>
-          {isLecturer && <TabsTrigger value="add-questions">Add Questions</TabsTrigger>}
-          {isLecturer && <TabsTrigger value="attempts">Student Attempts</TabsTrigger>}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
+        <TabsList
+          className={`grid ${
+            isLecturer ? 'grid-cols-4' : 'grid-cols-3'
+          } mb-8 text-xs`}
+        >
+          <TabsTrigger value='overview'>Overview</TabsTrigger>
+          <TabsTrigger value='questions'>Quiz Questions</TabsTrigger>
+          {isLecturer && (
+            <TabsTrigger value='add-questions'>Add Questions</TabsTrigger>
+          )}
+          {isLecturer && (
+            <TabsTrigger value='attempts'>Student Attempts</TabsTrigger>
+          )}
         </TabsList>
-        
-        <TabsContent value="overview">
+
+        <TabsContent value='overview'>
           <Card>
             <CardHeader>
               <CardTitle>Quiz Details</CardTitle>
               <CardDescription>Information about this quiz</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className='space-y-4'>
                 <div>
-                  <h3 className="font-medium mb-2">Instructions</h3>
+                  <h3 className='font-medium mb-2'>Instructions</h3>
                   <p>{quiz.instructions || 'No instructions provided.'}</p>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className='grid grid-cols-2 gap-4'>
                   <div>
-                    <h3 className="font-medium mb-2">Status</h3>
-                    <p className={`font-medium ${quiz.is_active ? 'text-green-600' : 'text-gray-500'}`}>
+                    <h3 className='font-medium mb-2'>Status</h3>
+                    <p
+                      className={`font-medium ${
+                        quiz.is_active ? 'text-green-600' : 'text-gray-500'
+                      }`}
+                    >
                       {quiz.is_active ? 'Active' : 'Inactive'}
                     </p>
                   </div>
                   <div>
-                    <h3 className="font-medium mb-2">Number of Questions</h3>
+                    <h3 className='font-medium mb-2'>Number of Questions</h3>
                     <p>{quiz.number_of_questions}</p>
                   </div>
                   <div>
-                    <h3 className="font-medium mb-2">Allotted Time</h3>
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
+                    <h3 className='font-medium mb-2'>Allotted Time</h3>
+                    <div className='flex items-center gap-2'>
+                      <Clock className='h-4 w-4 text-muted-foreground' />
                       <span>{quiz.allotted_time}</span>
                     </div>
                   </div>
                   <div>
-                    <h3 className="font-medium mb-2">Created</h3>
+                    <h3 className='font-medium mb-2'>Created</h3>
                     <p>{new Date(quiz.created_at).toLocaleDateString()}</p>
                   </div>
                 </div>
                 <div>
-                  <h3 className="font-medium mb-2">Time Period</h3>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <h3 className='font-medium mb-2'>Time Period</h3>
+                  <div className='flex items-center gap-2'>
+                    <Calendar className='h-4 w-4 text-muted-foreground' />
                     <span>
-                      {format(new Date(quiz.start_date_time), 'MMM d, yyyy h:mm a')} - {format(new Date(quiz.end_date_time), 'MMM d, yyyy h:mm a')}
+                      {format(
+                        new Date(quiz.start_date_time),
+                        'MMM d, yyyy h:mm a'
+                      )}{' '}
+                      -{' '}
+                      {format(
+                        new Date(quiz.end_date_time),
+                        'MMM d, yyyy h:mm a'
+                      )}
                     </span>
                   </div>
                 </div>
@@ -127,25 +153,31 @@ const QuizDetails = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        
-        <TabsContent value="questions">
-          <QuizQuestionsList quizId={quizId || ''} refreshTrigger={refreshTrigger} />
+
+        <TabsContent value='questions'>
+          <QuizQuestionsList
+            quizId={quizId || ''}
+            refreshTrigger={refreshTrigger}
+          />
         </TabsContent>
-        
+
         {isLecturer && (
-          <TabsContent value="add-questions">
-            <CreateQuizQuestionForm quizId={quizId || ''} onSuccess={handleQuestionsUpdated} />
+          <TabsContent value='add-questions'>
+            <CreateQuizQuestionForm
+              quizId={quizId || ''}
+              onSuccess={handleQuestionsUpdated}
+            />
           </TabsContent>
         )}
-        
+
         {isLecturer && (
-          <TabsContent value="attempts">
+          <TabsContent value='attempts'>
             <QuizAttempts quizId={quizId || ''} />
           </TabsContent>
         )}
       </Tabs>
     </div>
-  );
+  )
 };
 
 export default QuizDetails;

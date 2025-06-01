@@ -119,9 +119,9 @@ const QuizAttemptHistory = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-6 md:px-10 py-8">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-acadex-primary">Quiz Attempts</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-acadex-primary">Quiz Attempts</h1>
           <Button variant="outline" onClick={handleGoBack}>
             <ArrowLeft className="mr-2 h-4 w-4" /> Back
           </Button>
@@ -137,7 +137,7 @@ const QuizAttemptHistory = () => {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-acadex-primary">Quiz Attempts</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-acadex-primary">Quiz Attempts</h1>
           <Button variant="outline" onClick={handleGoBack}>
             <ArrowLeft className="mr-2 h-4 w-4" /> Back
           </Button>
@@ -152,9 +152,9 @@ const QuizAttemptHistory = () => {
 
   if (attempts.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-6 md:px-10 py-8">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-acadex-primary">Quiz Attempts</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-acadex-primary">Quiz Attempts</h1>
           <Button variant="outline" onClick={handleGoBack}>
             <ArrowLeft className="mr-2 h-4 w-4" /> Back
           </Button>
@@ -173,14 +173,16 @@ const QuizAttemptHistory = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
+    <div className='container mx-auto px-6 md:px-10 py-8'>
+      <div className='flex justify-between items-start mb-6'>
         <div>
-          <h1 className="text-3xl font-bold text-acadex-primary">Quiz Attempts</h1>
-          <p className="text-muted-foreground">View your past quiz attempts</p>
+          <h1 className='text-2xl md:text-3xl font-bold text-acadex-primary'>
+            Quiz Attempts
+          </h1>
+          <p className='text-muted-foreground'>View your past quiz attempts</p>
         </div>
-        <Button variant="outline" onClick={handleGoBack}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back
+        <Button variant='outline' onClick={handleGoBack}>
+          <ArrowLeft className='mr-2 h-4 w-4' /> Back
         </Button>
       </div>
 
@@ -188,38 +190,49 @@ const QuizAttemptHistory = () => {
         <CardHeader>
           <CardTitle>Quiz Attempt History</CardTitle>
           {/* Filter and Sort Controls */}
-          <div className="flex gap-4 pt-4">
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <Select value={statusFilter} onValueChange={(value: StatusFilter) => setStatusFilter(value)}>
-                <SelectTrigger className="w-40">
+          <div className='flex gap-4 pt-4'>
+            <div className='flex items-center gap-2'>
+              <Filter className='h-4 w-4 text-muted-foreground' />
+              <Select
+                value={statusFilter}
+                onValueChange={(value: StatusFilter) => setStatusFilter(value)}
+              >
+                <SelectTrigger className='w-40'>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="submitted">Submitted</SelectItem>
-                  <SelectItem value="incomplete">Incomplete</SelectItem>
+                  <SelectItem value='all'>All Status</SelectItem>
+                  <SelectItem value='submitted'>Submitted</SelectItem>
+                  <SelectItem value='incomplete'>Incomplete</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            
-            <div className="flex items-center gap-2">
-              <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
-              <Select value={`${sortField}-${sortOrder}`} onValueChange={(value) => {
-                const [field, order] = value.split('-') as [SortField, SortOrder];
-                setSortField(field);
-                setSortOrder(order);
-              }}>
-                <SelectTrigger className="w-48">
+
+            <div className='flex items-center gap-2'>
+              <ArrowUpDown className='h-4 w-4 text-muted-foreground' />
+              <Select
+                value={`${sortField}-${sortOrder}`}
+                onValueChange={(value) => {
+                  const [field, order] = value.split('-') as [
+                    SortField,
+                    SortOrder
+                  ]
+                  setSortField(field)
+                  setSortOrder(order)
+                }}
+              >
+                <SelectTrigger className='w-48'>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="title-asc">Quiz Title (A-Z)</SelectItem>
-                  <SelectItem value="title-desc">Quiz Title (Z-A)</SelectItem>
-                  <SelectItem value="attempt_time-desc">Latest First</SelectItem>
-                  <SelectItem value="attempt_time-asc">Oldest First</SelectItem>
-                  <SelectItem value="score-desc">Highest Score</SelectItem>
-                  <SelectItem value="score-asc">Lowest Score</SelectItem>
+                  <SelectItem value='title-asc'>Quiz Title (A-Z)</SelectItem>
+                  <SelectItem value='title-desc'>Quiz Title (Z-A)</SelectItem>
+                  <SelectItem value='attempt_time-desc'>
+                    Latest First
+                  </SelectItem>
+                  <SelectItem value='attempt_time-asc'>Oldest First</SelectItem>
+                  <SelectItem value='score-desc'>Highest Score</SelectItem>
+                  <SelectItem value='score-asc'>Lowest Score</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -233,41 +246,43 @@ const QuizAttemptHistory = () => {
                 <TableHead>Attempt Date</TableHead>
                 <TableHead>Score</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className='text-right'>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredAttempts.map((attempt) => (
                 <TableRow key={attempt.quiz_id}>
-                  <TableCell className="font-medium">{attempt.title}</TableCell>
-                  <TableCell>{quizService.formatDateTime(attempt.attempt_time)}</TableCell>
+                  <TableCell className='font-medium capitalize'>{attempt.title}</TableCell>
+                  <TableCell>
+                    {quizService.formatDateTime(attempt.attempt_time)}
+                  </TableCell>
                   <TableCell>{attempt.score}</TableCell>
                   <TableCell>
                     {attempt.submitted ? (
-                      <span className="inline-flex items-center text-green-600">
-                        <CheckCircle2 className="h-4 w-4 mr-1" /> Submitted
+                      <span className='inline-flex items-center text-green-600'>
+                        <CheckCircle2 className='h-4 w-4 mr-1' /> Submitted
                       </span>
                     ) : (
-                      <span className="inline-flex items-center text-amber-600">
-                        <Clock className="h-4 w-4 mr-1" /> Incomplete
+                      <span className='inline-flex items-center text-amber-600'>
+                        <Clock className='h-4 w-4 mr-1' /> Incomplete
                       </span>
                     )}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className='text-right'>
                     {attempt.submitted ? (
-                      <Button 
-                        size="sm" 
-                        variant="outline"
+                      <Button
+                        size='sm'
+                        variant='outline'
                         onClick={() => handleViewResult(attempt)}
                       >
                         View Result
                       </Button>
                     ) : (
-                      <Button 
-                        size="sm" 
-                        variant="outline"
+                      <Button
+                        size='sm'
+                        variant='outline'
                         disabled
-                        className="opacity-50 cursor-not-allowed"
+                        className='opacity-50 cursor-not-allowed'
                       >
                         View Result
                       </Button>
@@ -280,7 +295,7 @@ const QuizAttemptHistory = () => {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 };
 
 export default QuizAttemptHistory;

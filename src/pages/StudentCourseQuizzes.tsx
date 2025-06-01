@@ -184,10 +184,10 @@ const StudentCourseQuizzes = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-6 md:px-10 py-8">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-acadex-primary">{courseTitle} - Quizzes</h1>
+            <h1 className=" text-2xl md:text-3xl font-bold text-acadex-primary">{courseTitle} - Quizzes</h1>
           </div>
           <Button variant="outline" onClick={handleGoBack}>
             <ArrowLeft className="mr-2 h-4 w-4" /> Back
@@ -202,10 +202,10 @@ const StudentCourseQuizzes = () => {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-6 md:px-10 py-8">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-acadex-primary">{courseTitle} - Quizzes</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-acadex-primary">{courseTitle} - Quizzes</h1>
           </div>
           <Button variant="outline" onClick={handleGoBack}>
             <ArrowLeft className="mr-2 h-4 w-4" /> Back
@@ -220,10 +220,10 @@ const StudentCourseQuizzes = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-acadex-primary">{courseTitle} - Quizzes</h1>
+    <div className="container mx-auto px-6 md:px-10 py-8 font-semibold">
+      <div className="flex justify-between items-start mb-6">
+        <div className='flex flex-col gap-2'>
+          <h1 className="text-2xl md:text-3xl font-bold text-acadex-primary capitalize">{courseTitle} - Quizzes</h1>
           <p className="text-muted-foreground">View and attempt quizzes for this course</p>
         </div>
         <Button variant="outline" onClick={handleGoBack}>
